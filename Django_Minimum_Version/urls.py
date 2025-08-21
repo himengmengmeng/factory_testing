@@ -28,6 +28,7 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
     path('__debug__/', include(debug_toolbar.urls)),
+    path('', include('seller_models.urls')),  # 包含seller_models的URL
 ]
 
 if settings.DEBUG:

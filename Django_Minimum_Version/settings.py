@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'django_extensions',
     'guardian',
+    'seller_models',  # 确保 seller_models 应用已添加到 INSTALLED_APPS
 
 ]
 
@@ -210,3 +211,8 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',  # 默认后端
     'guardian.backends.ObjectPermissionBackend',  # guardian 后端
 )
+
+# settings.py
+API_KEY = 'prod:2iTvJIGGSgfDqljwS6RUFOGPm7X:2vWLAeeQUJ5vaH0uH3cRq2fEkGO:2vWLAYQW3vlJm1ODucVSssfnzCa'
+PARTNER_ID = 'instaview'
+CLIENT_ID = 'seller'
