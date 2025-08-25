@@ -16,10 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 import debug_toolbar
-from main_app import urls as main_app_urls
-
-admin.site.site_header = 'Meng Meng'
-admin.site.index_title = 'Meng'
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -28,12 +24,10 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
     path('__debug__/', include(debug_toolbar.urls)),
-    path('', include('seller_models.urls')),  # 包含seller_models的URL
+    path('', include('seller_models.urls')),  # 包含seller_models App的URL
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-
-
+    # 确保没有添加类似下面的静态文件服务模式
+    # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

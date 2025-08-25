@@ -60,7 +60,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -68,6 +68,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    
 ]
 
 
@@ -89,7 +91,7 @@ ROOT_URLCONF = 'Django_Minimum_Version.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # 确保这一行存在
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -111,7 +113,7 @@ WSGI_APPLICATION = 'Django_Minimum_Version.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'Django_Minimum_Version',          # 确保数据库已创建
+        'NAME': 'Django_Minimum_Version', # 确保数据库已创建
         'HOST': 'localhost',
         'USER': 'root',            # MySQL 用户名
         'PASSWORD': '1234567890',  # MySQL 密码
@@ -212,7 +214,11 @@ AUTHENTICATION_BACKENDS = (
     'guardian.backends.ObjectPermissionBackend',  # guardian 后端
 )
 
-# settings.py
+# instavision related settings.py
 API_KEY = 'prod:2iTvJIGGSgfDqljwS6RUFOGPm7X:2vWLAeeQUJ5vaH0uH3cRq2fEkGO:2vWLAYQW3vlJm1ODucVSssfnzCa'
-PARTNER_ID = 'instaview'
-CLIENT_ID = 'seller'
+CLIENT_ID = 'seller'  # 根据API要求设置
+PARTNER_ID = 'instaview'  # 根据API要求设置
+
+SESSION_COOKIE_AGE = 30 * 24 * 60 * 60  # 30天（与access token一致）
+SESSION_SAVE_EVERY_REQUEST = True  # 每次请求都保存session，实现滑动过期
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 浏览器关闭后session仍然有效
