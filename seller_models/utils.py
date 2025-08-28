@@ -7,7 +7,7 @@ def decode_jwt(token):
     解析JWT token并返回payload
     """
     try:
-        # 注意：这里假设JWT使用HS256算法，如果使用其他算法需要调整
+        # 这里假设JWT使用HS256算法，如果使用其他算法需要调整
         # 实际使用时可能需要验证签名，但这里只做解析
         decoded = jwt.decode(token, options={"verify_signature": False})
         return decoded
