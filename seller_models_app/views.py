@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from .utils import get_seller_id_from_token
 
+"""
 def model_list(request):
     # API端点
     url = "https://api-us.instaview.ai/zeus/v2/sellers/2iTvJIGGSgfDqljwS6RUFOGPm7X/variants"
@@ -38,14 +39,7 @@ def model_list(request):
     }
     return render(request, 'models/model_list.html', context)
 
-
-
-
-
-
-
-
-
+"""
 
 
 

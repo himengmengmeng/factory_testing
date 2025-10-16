@@ -214,8 +214,8 @@ AUTHENTICATION_BACKENDS = (
     'guardian.backends.ObjectPermissionBackend',  # guardian 后端
 )
 
-# instavision related settings.py
-API_KEY = 'prod:2iTvJIGGSgfDqljwS6RUFOGPm7X:2vWLAeeQUJ5vaH0uH3cRq2fEkGO:2vWLAYQW3vlJm1ODucVSssfnzCa'
+# instavision related settings.py 
+# 下面的信息是请求体中的必填项👇🏻
 CLIENT_ID = 'seller'  # 根据API要求设置
 PARTNER_ID = 'instaview'  # 根据API要求设置
 
