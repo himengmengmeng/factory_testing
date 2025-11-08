@@ -17,6 +17,12 @@
         .success { color: green; }
         .error { color: red; }
         .hidden { display: none; }
+        #recentResults { 
+            background-color: #f5f5f5; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -88,6 +94,10 @@
             document.getElementById('startBtn').disabled = true;
             document.getElementById('progressSection').classList.remove('hidden');
             
+            // 重置结果
+            allResults = [];
+            updateResultsTable();
+            
             fetch('/check-devices/', {
                 method: 'POST',
                 headers: {
@@ -131,13 +141,13 @@
                     document.getElementById('progressText').textContent = 
                         `${percent.toFixed(1)}% (${progress.current}/${progress.total})`;
                     
-                    // 更新结果
-                    if (data.results) {
+                    // 更新全部结果
+                    if (data.results && data.results.length > 0) {
                         allResults = data.results;
                         updateResultsTable();
                     }
                     
-                    // 显示最近结果
+                    // 显示最近结果（仅用于进度显示，不影响主表格）
                     updateRecentResults(data.results);
                     
                     if (data.status === 'processing') {
@@ -167,7 +177,8 @@
             const container = document.getElementById('recentResults');
             if (!results || results.length === 0) return;
             
-            const recent = results.slice(-5); // 显示最近5条
+            // 只显示最近5条作为进度参考
+            const recent = results.slice(-5);
             container.innerHTML = '<h4>最近处理:</h4>' + 
                 recent.map(r => 
                     `<div class="${r.status}">${r.device_id} - ${r.status} - ${r.action}</div>`
@@ -178,6 +189,7 @@
             const tbody = document.getElementById('resultsBody');
             tbody.innerHTML = '';
             
+            // 显示全部结果
             allResults.forEach(result => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -189,6 +201,22 @@
                 `;
                 tbody.appendChild(row);
             });
+            
+            // 添加统计信息
+            const successCount = allResults.filter(r => r.status === 'success').length;
+            const errorCount = allResults.filter(r => r.status === 'error').length;
+            const totalCount = allResults.length;
+            
+            // 在表格底部添加统计行
+            const statsRow = document.createElement('tr');
+            statsRow.style.backgroundColor = '#f9f9f9';
+            statsRow.innerHTML = `
+                <td colspan="2"><strong>统计信息</strong></td>
+                <td><strong>总计: ${totalCount}</strong></td>
+                <td><strong>成功: ${successCount}</strong></td>
+                <td><strong>失败: ${errorCount}</strong></td>
+            `;
+            tbody.appendChild(statsRow);
         }
         
         function exportResults() {

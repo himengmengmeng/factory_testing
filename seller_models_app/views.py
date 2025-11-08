@@ -600,7 +600,7 @@ def get_progress(request):
             'current': progress_data['current'],
             'total': progress_data['total']
         },
-        'results': progress_data['results'][-10:],  # 返回最近10条结果
+        'results': progress_data['results'],  # 返回最近10条结果
         'error': progress_data.get('error')
     })
 
