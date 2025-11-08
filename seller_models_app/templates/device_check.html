@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DID批量检查与绑定工具</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: inline-block; width: 150px; font-weight: bold; }
+        input[type="text"] { width: 300px; padding: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .progress { margin: 20px 0; }
+        progress { width: 100%; height: 20px; }
+        .results { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .success { color: green; }
+        .error { color: red; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1>DID批量检查与绑定工具</h1>
+    
+    <div class="form-container">
+        <div class="form-group">
+            <label for="base_url">Base URL:</label>
+            <input type="text" id="base_url" required>
+        </div>
+        <div class="form-group">
+            <label for="seller_id">Seller ID:</label>
+            <input type="text" id="seller_id" required>
+        </div>
+        <div class="form-group">
+            <label for="api_key">API Key:</label>
+            <input type="text" id="api_key" required>
+        </div>
+        <div class="form-group">
+            <label for="target_variant_id">Target Variant ID:</label>
+            <input type="text" id="target_variant_id" required>
+        </div>
+        <button onclick="startCheck()" id="startBtn">开始检查</button>
+    </div>
+    
+    <div id="progressSection" class="hidden">
+        <h3>处理进度</h3>
+        <div class="progress">
+            <progress id="progressBar" value="0" max="100"></progress>
+            <div id="progressText">0% (0/0)</div>
+        </div>
+        <div id="recentResults"></div>
+    </div>
+    
+    <div id="resultsSection" class="hidden">
+        <h3>处理结果</h3>
+        <button onclick="exportResults()">导出结果</button>
+        <button onclick="retryFailed()" id="retryBtn">重试失败项</button>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>行号</th>
+                    <th>Device ID</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                    <th>消息</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentTaskId = null;
+        let allResults = [];
+        
+        function startCheck() {
+            const base_url = document.getElementById('base_url').value;
+            const seller_id = document.getElementById('seller_id').value;
+            const api_key = document.getElementById('api_key').value;
+            const target_variant_id = document.getElementById('target_variant_id').value;
+            
+            if (!base_url || !seller_id || !api_key || !target_variant_id) {
+                alert('请填写所有必需参数');
+                return;
+            }
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('progressSection').classList.remove('hidden');
+            
+            fetch('/check-devices/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    base_url: base_url,
+                    seller_id: seller_id,
+                    api_key: api_key,
+                    target_variant_id: target_variant_id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'started') {
+                    currentTaskId = data.task_id;
+                    checkProgress();
+                } else {
+                    alert('启动失败: ' + data.message);
+                    document.getElementById('startBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('startBtn').disabled = false;
+            });
+        }
+        
+        function checkProgress() {
+            if (!currentTaskId) return;
+            
+            fetch(`/get-progress/?task_id=${currentTaskId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'processing' || data.status === 'completed') {
+                    // 更新进度条
+                    const progress = data.progress;
+                    const percent = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
+                    document.getElementById('progressBar').value = percent;
+                    document.getElementById('progressText').textContent = 
+                        `${percent.toFixed(1)}% (${progress.current}/${progress.total})`;
+                    
+                    // 更新结果
+                    if (data.results) {
+                        allResults = data.results;
+                        updateResultsTable();
+                    }
+                    
+                    // 显示最近结果
+                    updateRecentResults(data.results);
+                    
+                    if (data.status === 'processing') {
+                        // 继续检查进度
+                        setTimeout(checkProgress, 1000);
+                    } else if (data.status === 'completed') {
+                        document.getElementById('progressText').textContent += ' - 完成';
+                        document.getElementById('resultsSection').classList.remove('hidden');
+                        document.getElementById('startBtn').disabled = false;
+                        
+                        // 如果有失败项，显示重试按钮
+                        const hasFailed = allResults.some(r => r.status === 'error');
+                        document.getElementById('retryBtn').style.display = hasFailed ? 'inline-block' : 'none';
+                    }
+                } else if (data.status === 'error') {
+                    alert('处理错误: ' + data.message);
+                    document.getElementById('startBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking progress:', error);
+                setTimeout(checkProgress, 2000); // 2秒后重试
+            });
+        }
+        
+        function updateRecentResults(results) {
+            const container = document.getElementById('recentResults');
+            if (!results || results.length === 0) return;
+            
+            const recent = results.slice(-5); // 显示最近5条
+            container.innerHTML = '<h4>最近处理:</h4>' + 
+                recent.map(r => 
+                    `<div class="${r.status}">${r.device_id} - ${r.status} - ${r.action}</div>`
+                ).join('');
+        }
+        
+        function updateResultsTable() {
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            
+            allResults.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${result.row}</td>
+                    <td>${result.device_id}</td>
+                    <td class="${result.status}">${result.status}</td>
+                    <td>${result.action}</td>
+                    <td>${result.message}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function exportResults() {
+            if (!currentTaskId) {
+                alert('没有可导出的结果');
+                return;
+            }
+            window.open(`/export-results/?task_id=${currentTaskId}`);
+        }
+        
+        function retryFailed() {
+            const failedDevices = allResults
+                .filter(r => r.status === 'error')
+                .map(r => ({ device_id: r.device_id, row: r.row }));
+            
+            if (failedDevices.length === 0) {
+                alert('没有失败项需要重试');
+                return;
+            }
+            
+            const base_url = document.getElementById('base_url').value;
+            const seller_id = document.getElementById('seller_id').value;
+            const api_key = document.getElementById('api_key').value;
+            const target_variant_id = document.getElementById('target_variant_id').value;
+            
+            fetch('/retry-failed/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    failed_devices: failedDevices,
+                    base_url: base_url,
+                    seller_id: seller_id,
+                    api_key: api_key,
+                    target_variant_id: target_variant_id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed') {
+                    // 更新结果
+                    data.results.forEach(newResult => {
+                        const index = allResults.findIndex(r => 
+                            r.device_id === newResult.device_id && r.row === newResult.row
+                        );
+                        if (index !== -1) {
+                            allResults[index] = newResult;
+                        }
+                    });
+                    updateResultsTable();
+                    
+                    // 检查是否还有失败项
+                    const hasFailed = allResults.some(r => r.status === 'error');
+                    document.getElementById('retryBtn').style.display = hasFailed ? 'inline-block' : 'none';
+                    
+                    alert('重试完成');
+                } else {
+                    alert('重试失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('重试请求失败');
+            });
+        }
+        
+        // 获取CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
