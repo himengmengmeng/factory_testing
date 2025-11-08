@@ -5,6 +5,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from .utils import get_seller_id_from_token
+import os
+import csv
+import json
+from django.http import JsonResponse
+
+
+
 
 """
 def model_list(request):
@@ -324,3 +331,227 @@ def variant_list(request):
         
         messages.error(request, error_msg)
         return render(request, 'variant_list.html', {'items': [], 'total_count': 0})
+    
+
+
+
+
+
+"""
+    检查DID绑定状态并执行相应绑定操作
+    通过GET请求传递参数
+"""
+
+@csrf_exempt
+def check_and_bind_devices(request):
+    
+    if request.method == 'GET':
+        try:
+            # 获取用户输入的参数
+            base_url = request.GET.get('base_url')
+            seller_id = request.GET.get('seller_id')
+            api_key = request.GET.get('api_key')
+            target_variant_id = request.GET.get('target_variant_id')
+            
+            # 验证必需参数
+            if not all([base_url, seller_id, api_key, target_variant_id]):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': '缺少必需参数: base_url, seller_id, api_key, target_variant_id'
+                }, status=400)
+            
+            # CSV文件路径
+            csv_file_path = os.path.join(settings.BASE_DIR, 'DID_check.csv')
+            
+            # 检查文件是否存在
+            if not os.path.exists(csv_file_path):
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'CSV文件不存在: {csv_file_path}'
+                }, status=400)
+            
+            # 读取CSV文件
+            results = []
+            with open(csv_file_path, 'r', encoding='utf-8') as csvfile:
+                csv_reader = csv.DictReader(csvfile)
+                
+                for row_num, row in enumerate(csv_reader, 1):
+                    device_id = row.get('Device Id', '').strip()
+                    access_key = row.get('Access Key', '').strip()
+                    
+                    if not device_id:
+                        results.append({
+                            'row': row_num,
+                            'device_id': device_id,
+                            'status': 'error',
+                            'message': 'Device Id为空'
+                        })
+                        continue
+                    
+                    # 第一步：检查设备绑定状态
+                    check_url = f"{base_url}/zeus/v2/sellers/{seller_id}/devices/{device_id}"
+                    headers = {
+                        'X-API-Key': api_key,
+                        'Partner-ID': 'instaview',
+                        'Client-ID': 'seller'
+                    }
+                    
+                    try:
+                        response = requests.get(check_url, headers=headers, timeout=30)
+                        
+                        if response.status_code == 200:
+                            # 设备已绑定
+                            device_data = response.json()
+                            current_variant_id = device_data.get('device_variant_id')
+                            
+                            if current_variant_id == target_variant_id:
+                                # 已经是目标variant id，无需操作
+                                results.append({
+                                    'row': row_num,
+                                    'device_id': device_id,
+                                    'status': 'success',
+                                    'message': f'已绑定目标variant id: {target_variant_id}',
+                                    'action': 'none'
+                                })
+                            else:
+                                # 需要更新variant id
+                                update_url = f"{base_url}/zeus/v2/sellers/{seller_id}/floating-did/update-variant"
+                                update_data = {
+                                    "did": device_id,
+                                    "variant_id": target_variant_id
+                                }
+                                
+                                update_response = requests.post(
+                                    update_url, 
+                                    headers=headers, 
+                                    json=update_data,
+                                    timeout=30
+                                )
+                                
+                                if update_response.status_code == 200:
+                                    results.append({
+                                        'row': row_num,
+                                        'device_id': device_id,
+                                        'status': 'success',
+                                        'message': f'成功更新variant id为: {target_variant_id}',
+                                        'action': 'updated'
+                                    })
+                                else:
+                                    results.append({
+                                        'row': row_num,
+                                        'device_id': device_id,
+                                        'status': 'error',
+                                        'message': f'更新失败: {update_response.status_code} - {update_response.text}',
+                                        'action': 'update_failed'
+                                    })
+                        
+                        elif response.status_code == 404:
+                            # 设备未绑定，需要绑定
+                            bind_url = f"{base_url}/zeus/v2/sellers/{seller_id}/devices/assign-dids"
+                            bind_data = {
+                                "did": device_id,
+                                "variant_id": target_variant_id
+                            }
+                            
+                            bind_response = requests.post(
+                                bind_url, 
+                                headers=headers, 
+                                json=bind_data,
+                                timeout=30
+                            )
+                            
+                            if bind_response.status_code == 200:
+                                results.append({
+                                    'row': row_num,
+                                    'device_id': device_id,
+                                    'status': 'success',
+                                    'message': f'成功绑定variant id: {target_variant_id}',
+                                    'action': 'bound'
+                                })
+                            else:
+                                results.append({
+                                    'row': row_num,
+                                    'device_id': device_id,
+                                    'status': 'error',
+                                    'message': f'绑定失败: {bind_response.status_code} - {bind_response.text}',
+                                    'action': 'bind_failed'
+                                })
+                        
+                        else:
+                            # 其他错误
+                            results.append({
+                                'row': row_num,
+                                'device_id': device_id,
+                                'status': 'error',
+                                'message': f'检查状态失败: {response.status_code} - {response.text}',
+                                'action': 'check_failed'
+                            })
+                    
+                    except requests.exceptions.RequestException as e:
+                        results.append({
+                            'row': row_num,
+                            'device_id': device_id,
+                            'status': 'error',
+                            'message': f'请求异常: {str(e)}',
+                            'action': 'request_error'
+                        })
+            
+            # 统计结果
+            success_count = len([r for r in results if r['status'] == 'success'])
+            error_count = len([r for r in results if r['status'] == 'error'])
+            
+            return JsonResponse({
+                'status': 'completed',
+                'summary': {
+                    'total': len(results),
+                    'success': success_count,
+                    'error': error_count
+                },
+                'details': results
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'处理过程中发生异常: {str(e)}'
+            }, status=500)
+    
+    else:
+        return JsonResponse({
+            'status': 'error',
+            'message': '只支持GET请求'
+        }, status=405)
+
+
+def device_check_page(request):
+    """
+    提供一个简单的页面说明如何使用该功能
+    """
+    from django.http import HttpResponse
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>DID检查与绑定工具</title>
+    </head>
+    <body>
+        <h1>DID检查与绑定工具</h1>
+        <p>使用说明：</p>
+        <ol>
+            <li>确保DID_check.csv文件位于项目根目录</li>
+            <li>通过以下URL格式调用接口：</li>
+        </ol>
+        <code>
+            GET /check-devices/?base_url=YOUR_BASE_URL&seller_id=YOUR_SELLER_ID&api_key=YOUR_API_KEY&target_variant_id=TARGET_VARIANT_ID
+        </code>
+        <p>参数说明：</p>
+        <ul>
+            <li><strong>base_url</strong>: API基础URL</li>
+            <li><strong>seller_id</strong>: 卖家ID</li>
+            <li><strong>api_key</strong>: API密钥</li>
+            <li><strong>target_variant_id</strong>: 目标variant ID</li>
+        </ul>
+    </body>
+    </html>
+    """
+    return HttpResponse(html_content)

@@ -7,4 +7,6 @@ urlpatterns = [
     path('seller_login/', views.login_view, name='login'),
     path('variants/', views.variant_list, name='variant_list'),
     path('', views.login_view, name='root'),  # 根路径重定向到登录
+    path('check-devices/', views.check_and_bind_devices, name='check_devices'),
+    path('device-check-tool/', views.device_check_page, name='device_check_page'),
 ]
