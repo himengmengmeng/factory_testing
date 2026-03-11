@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'guardian',
     'seller_models_app',  # 确保 seller_models_app 应用已添加到 INSTALLED_APPS
-
+    'token_based_factory_tool',
 ]
 
 
@@ -222,3 +222,6 @@ PARTNER_ID = 'instaview'  # 根据API要求设置
 SESSION_COOKIE_AGE = 30 * 24 * 60 * 60  # 30天（与access token一致）
 SESSION_SAVE_EVERY_REQUEST = True  # 每次请求都保存session，实现滑动过期
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 浏览器关闭后session仍然有效
+
+INSTAVIEW_BASE_URL = 'https://staging.instaview.ai'
+CSRF_COOKIE_HTTPONLY = False

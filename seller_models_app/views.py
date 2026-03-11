@@ -495,7 +495,7 @@ def process_single_device(base_url, seller_id, api_key, target_variant_id, devic
                     'row': row_num,
                     'device_id': device_id,
                     'status': 'success',
-                    'message': f'已绑定目标variant id: {target_variant_id}',
+                    'message': f'already has variant id: {target_variant_id}',
                     'action': 'none'
                 }
             else:
@@ -518,7 +518,7 @@ def process_single_device(base_url, seller_id, api_key, target_variant_id, devic
                         'row': row_num,
                         'device_id': device_id,
                         'status': 'success',
-                        'message': f'成功更新variant id为: {target_variant_id}',
+                        'message': f'successfully updated variant id to: {target_variant_id}',
                         'action': 'updated'
                     }
                 else:
@@ -526,7 +526,7 @@ def process_single_device(base_url, seller_id, api_key, target_variant_id, devic
                         'row': row_num,
                         'device_id': device_id,
                         'status': 'error',
-                        'message': f'更新失败: {update_response.status_code} - {update_response.text}',
+                        'message': f'failed to update: {update_response.status_code} - {update_response.text}',
                         'action': 'update_failed'
                     }
         
@@ -550,7 +550,7 @@ def process_single_device(base_url, seller_id, api_key, target_variant_id, devic
                     'row': row_num,
                     'device_id': device_id,
                     'status': 'success',
-                    'message': f'成功绑定variant id: {target_variant_id}',
+                    'message': f'successfully bound variant id: {target_variant_id}',
                     'action': 'bound'
                 }
             else:
@@ -558,7 +558,7 @@ def process_single_device(base_url, seller_id, api_key, target_variant_id, devic
                     'row': row_num,
                     'device_id': device_id,
                     'status': 'error',
-                    'message': f'绑定失败: {bind_response.status_code} - {bind_response.text}',
+                    'message': f'bind failed: {bind_response.status_code} - {bind_response.text}',
                     'action': 'bind_failed'
                 }
         
@@ -667,7 +667,7 @@ def retry_failed_devices(request):
         except Exception as e:
             return JsonResponse({
                 'status': 'error',
-                'message': f'重试过程中发生异常: {str(e)}'
+                'message': f'Retry error: {str(e)}'
             }, status=500)
 
 

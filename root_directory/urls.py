@@ -25,9 +25,8 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
     path('__debug__/', include(debug_toolbar.urls)),
     path('', include('seller_models_app.urls')),  # 包含seller_models_app App的URL
+    path('factory-tool/', include('token_based_factory_tool.urls')),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG and hasattr(settings, 'MEDIA_URL') and hasattr(settings, 'MEDIA_ROOT'):
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    # 确保没有添加类似下面的静态文件服务模式
-    # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

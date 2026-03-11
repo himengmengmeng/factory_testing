@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>DID批量检查与绑定工具</title>
+    <title>Process DIDs in a batch processing manner</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
         .form-group { margin-bottom: 15px; }
@@ -26,7 +26,7 @@
     </style>
 </head>
 <body>
-    <h1>DID批量检查与绑定工具</h1>
+    <h1>Process DIDs in a batch processing manner</h1>
     
     <div class="form-container">
         <div class="form-group">
@@ -45,11 +45,11 @@
             <label for="target_variant_id">Target Variant ID:</label>
             <input type="text" id="target_variant_id" required>
         </div>
-        <button onclick="startCheck()" id="startBtn">开始检查</button>
+        <button onclick="startCheck()" id="startBtn">Proceed</button>
     </div>
     
     <div id="progressSection" class="hidden">
-        <h3>处理进度</h3>
+        <h3>Progress</h3>
         <div class="progress">
             <progress id="progressBar" value="0" max="100"></progress>
             <div id="progressText">0% (0/0)</div>
@@ -58,17 +58,17 @@
     </div>
     
     <div id="resultsSection" class="hidden">
-        <h3>处理结果</h3>
-        <button onclick="exportResults()">导出结果</button>
-        <button onclick="retryFailed()" id="retryBtn">重试失败项</button>
+        <h3>Outcome</h3>
+        <button onclick="exportResults()">Export Outcome</button>
+        <button onclick="retryFailed()" id="retryBtn">Retry</button>
         <table id="resultsTable">
             <thead>
                 <tr>
-                    <th>行号</th>
-                    <th>Device ID</th>
-                    <th>状态</th>
-                    <th>操作</th>
-                    <th>消息</th>
+                    <th>Row</th>
+                    <th>DID</th>
+                    <th>State</th>
+                    <th>Operation</th>
+                    <th>Message</th>
                 </tr>
             </thead>
             <tbody id="resultsBody">
@@ -87,7 +87,7 @@
             const target_variant_id = document.getElementById('target_variant_id').value;
             
             if (!base_url || !seller_id || !api_key || !target_variant_id) {
-                alert('请填写所有必需参数');
+                alert('Please fill in all required fields.');
                 return;
             }
             
@@ -117,7 +117,7 @@
                     currentTaskId = data.task_id;
                     checkProgress();
                 } else {
-                    alert('启动失败: ' + data.message);
+                    alert('Failed to start: ' + data.message);
                     document.getElementById('startBtn').disabled = false;
                 }
             })
@@ -154,7 +154,7 @@
                         // 继续检查进度
                         setTimeout(checkProgress, 1000);
                     } else if (data.status === 'completed') {
-                        document.getElementById('progressText').textContent += ' - 完成';
+                        document.getElementById('progressText').textContent += ' - Completed';
                         document.getElementById('resultsSection').classList.remove('hidden');
                         document.getElementById('startBtn').disabled = false;
                         
@@ -163,7 +163,7 @@
                         document.getElementById('retryBtn').style.display = hasFailed ? 'inline-block' : 'none';
                     }
                 } else if (data.status === 'error') {
-                    alert('处理错误: ' + data.message);
+                    alert('Error: ' + data.message);
                     document.getElementById('startBtn').disabled = false;
                 }
             })
@@ -179,7 +179,7 @@
             
             // 只显示最近5条作为进度参考
             const recent = results.slice(-5);
-            container.innerHTML = '<h4>最近处理:</h4>' + 
+            container.innerHTML = '<h4>Recent Operations:</h4>' + 
                 recent.map(r => 
                     `<div class="${r.status}">${r.device_id} - ${r.status} - ${r.action}</div>`
                 ).join('');
@@ -211,17 +211,17 @@
             const statsRow = document.createElement('tr');
             statsRow.style.backgroundColor = '#f9f9f9';
             statsRow.innerHTML = `
-                <td colspan="2"><strong>统计信息</strong></td>
-                <td><strong>总计: ${totalCount}</strong></td>
-                <td><strong>成功: ${successCount}</strong></td>
-                <td><strong>失败: ${errorCount}</strong></td>
+                <td colspan="2"><strong>Statistics</strong></td>
+                <td><strong>Sum: ${totalCount}</strong></td>
+                <td><strong>Success: ${successCount}</strong></td>
+                <td><strong>Failed: ${errorCount}</strong></td>
             `;
             tbody.appendChild(statsRow);
         }
         
         function exportResults() {
             if (!currentTaskId) {
-                alert('没有可导出的结果');
+                alert('There is no task to export results for.');
                 return;
             }
             window.open(`/export-results/?task_id=${currentTaskId}`);
@@ -233,7 +233,7 @@
                 .map(r => ({ device_id: r.device_id, row: r.row }));
             
             if (failedDevices.length === 0) {
-                alert('没有失败项需要重试');
+                alert('No failed devices to retry.');
                 return;
             }
             
@@ -274,14 +274,14 @@
                     const hasFailed = allResults.some(r => r.status === 'error');
                     document.getElementById('retryBtn').style.display = hasFailed ? 'inline-block' : 'none';
                     
-                    alert('重试完成');
+                    alert('retry completed');
                 } else {
-                    alert('重试失败: ' + data.message);
+                    alert('retry failed: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('重试请求失败');
+                alert('Retry request failed');
             });
         }
         
