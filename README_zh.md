@@ -18,7 +18,9 @@
 ### Seller 与产品信息展示
 - 查看一级 Seller 的产品 Variant（名称、Variant ID、OEM 机型 ID、OEM 机型名称）
 - 查看所有二级 Seller 及其产品 Variant
-- 一键复制 Variant ID 和 OEM 机型 ID
+- **统一搜索**：按 Variant 名称、Variant ID、机型名称或机型 ID 搜索所有 Seller
+- 一键复制 Variant 名称、Variant ID、机型名称、机型 ID
+- 过长文本以省略号显示，悬停可查看完整内容
 
 ### DID 绑定操作
 - **单个 DID 操作**：查询 DID 当前状态，自动检测并执行 assign（绑定）或 update（更新）

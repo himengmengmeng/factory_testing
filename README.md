@@ -18,7 +18,9 @@ A Django-based web client for the Instavision ODM factory testing platform. It p
 ### Sellers & Products Dashboard
 - View primary seller's product variants (name, variant ID, OEM model ID, OEM model name)
 - View all sub-sellers and their product variants
-- One-click copy for variant IDs and OEM model IDs
+- **Unified search** across all sellers by variant name, variant ID, model name, or model ID
+- One-click copy for variant name, variant ID, model name, and model ID
+- Long text truncated with ellipsis; hover for full content
 
 ### DID Binding Operations
 - **Single DID**: Query a DID's current status, then auto-detect and perform assign or update
