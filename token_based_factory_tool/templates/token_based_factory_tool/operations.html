@@ -5,32 +5,32 @@
 <div class="flex h-full">
   {% include "token_based_factory_tool/_sidebar.html" with active='operations' %}
 
-  <div class="flex-1 flex flex-col min-h-0">
+  <div class="flex-1 overflow-auto">
     {% include "token_based_factory_tool/_topbar.html" %}
 
-    <main class="flex-1 overflow-auto">
+    <main>
       <div class="max-w-5xl mx-auto px-6 py-8 animate-fade-in">
-      <h1 class="text-2xl font-bold text-dark-900 mb-1">DID Binding Operations</h1>
+      <h1 class="text-2xl font-bold text-white mb-1">DID Binding Operations</h1>
       <p class="text-dark-400 text-sm mb-8">Assign or update floating DIDs to product variants</p>
 
       <!-- ─── Seller Type Tabs ─── -->
-      <div class="flex gap-2 mb-6">
+      <div class="flex gap-6 mb-6 border-b border-dark-700">
         <button onclick="switchTab('primary')" id="tab-primary"
-                class="tab-btn px-5 py-2 rounded-lg text-sm font-medium transition">
+                class="tab-btn pb-2.5 text-sm font-medium transition border-b-2 -mb-px">
           Primary Seller
         </button>
         <button onclick="switchTab('sub')" id="tab-sub"
-                class="tab-btn px-5 py-2 rounded-lg text-sm font-medium transition">
+                class="tab-btn pb-2.5 text-sm font-medium transition border-b-2 -mb-px">
           Sub-Seller
         </button>
       </div>
 
       <!-- ─── Sub-seller picker (hidden for primary) ─── -->
       <div id="sub-picker" class="hidden mb-6 animate-slide-up">
-        <label class="block text-sm font-medium text-dark-700 mb-1.5">Select Sub-Seller</label>
+        <label class="block text-sm font-medium text-dark-300 mb-1.5">Select Sub-Seller</label>
         <select id="sub-seller-select"
                 onchange="onSubSellerChange()"
-                class="w-full max-w-md rounded-lg border border-dark-200 bg-white px-4 py-2.5 text-sm
+                class="w-full max-w-md rounded-lg border border-dark-600 bg-dark-800 text-dark-100 px-4 py-2.5 text-sm
                        focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
           <option value="">— loading sub-sellers —</option>
         </select>
@@ -38,22 +38,23 @@
 
       <!-- ─── Variant picker (searchable) ─── -->
       <div class="mb-8 animate-slide-up relative max-w-md" id="variant-picker-wrap">
-        <label class="block text-sm font-medium text-dark-700 mb-1.5">Target Variant</label>
+        <label class="block text-sm font-medium text-dark-300 mb-1.5">Target Variant</label>
         <input type="hidden" id="variant-select" value="">
         <input type="text" id="variant-search" autocomplete="off"
                placeholder="Search or select a variant…"
                onfocus="showVariantDropdown()" oninput="filterVariants()"
-               class="w-full rounded-lg border border-dark-200 bg-white px-4 py-2.5 text-sm
+               class="w-full rounded-lg border border-dark-600 bg-dark-800 text-dark-100 px-4 py-2.5 text-sm
+                      placeholder:text-dark-500
                       focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
         <div id="variant-dropdown"
              class="hidden absolute left-0 right-0 top-full mt-1 max-h-60 overflow-auto
-                    rounded-lg border border-dark-200 bg-white shadow-lg z-50"></div>
+                    rounded-lg border border-dark-600 bg-dark-800 shadow-lg z-50"></div>
       </div>
 
       <!-- ═══════ Single DID ═══════ -->
-      <section class="bg-white rounded-2xl border border-dark-100 p-6 mb-8">
-        <h2 class="text-base font-semibold text-dark-900 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <section class="bg-dark-900 rounded-2xl border border-dark-700 p-6 mb-8">
+        <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
           </svg>
           Single DID Operation
@@ -63,12 +64,13 @@
           <div class="flex-1 min-w-[220px]">
             <label class="block text-xs text-dark-400 mb-1">Device ID (DID)</label>
             <input id="single-did" type="text" placeholder="Enter device ID…"
-                   class="w-full rounded-lg border border-dark-200 bg-dark-50 px-4 py-2.5 text-sm font-mono
+                   class="w-full rounded-lg border border-dark-600 bg-dark-800 text-dark-100 px-4 py-2.5 text-sm font-mono
+                          placeholder:text-dark-500
                           focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
           </div>
           <button onclick="querySingleDid()"
-                  class="px-4 py-2.5 rounded-lg border border-dark-200 bg-white text-sm font-medium text-dark-700
-                         hover:bg-dark-50 transition">
+                  class="px-4 py-2.5 rounded-lg border border-dark-600 bg-dark-800 text-sm font-medium text-dark-200
+                         hover:bg-dark-700 transition">
             Query Status
           </button>
           <button onclick="bindSingleDid('auto')"
@@ -78,20 +80,20 @@
           </button>
         </div>
 
-        <div id="single-result" class="hidden rounded-lg bg-dark-50 border border-dark-100 p-4 text-sm space-y-1"></div>
+        <div id="single-result" class="hidden rounded-lg bg-dark-800 border border-dark-700 p-4 text-sm space-y-1"></div>
       </section>
 
       <!-- ═══════ Batch CSV ═══════ -->
-      <section class="bg-white rounded-2xl border border-dark-100 p-6">
-        <h2 class="text-base font-semibold text-dark-900 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <section class="bg-dark-900 rounded-2xl border border-dark-700 p-6">
+        <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
           </svg>
           Batch CSV Upload
         </h2>
         <p class="text-xs text-dark-400 mb-4">
-          CSV format: two columns — <code class="bg-dark-100 px-1 rounded">Device Id</code> and
-          <code class="bg-dark-100 px-1 rounded">Access Key</code>.
+          CSV format: two columns — <code class="bg-dark-700 px-1 rounded text-dark-200">Device Id</code> and
+          <code class="bg-dark-700 px-1 rounded text-dark-200">Access Key</code>.
           Each DID will be auto-detected as assign or update.
         </p>
 
@@ -100,60 +102,57 @@
           <div class="flex-1 min-w-[220px]">
             <label class="block text-xs text-dark-400 mb-1">CSV File</label>
             <input id="csv-file" type="file" accept=".csv"
-                   class="w-full text-sm text-dark-700 file:mr-3 file:py-2 file:px-4
+                   class="w-full text-sm text-dark-300 file:mr-3 file:py-2 file:px-4
                           file:rounded-lg file:border-0 file:text-sm file:font-medium
-                          file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100
+                          file:bg-dark-700 file:text-dark-200 hover:file:bg-dark-600
                           cursor-pointer">
           </div>
           <button id="btn-start" onclick="startBatch()"
-                  class="px-5 py-2.5 rounded-lg bg-indigo-600 text-sm font-medium text-white
-                         hover:bg-indigo-700 transition">
+                  class="px-5 py-2.5 rounded-lg bg-primary-600 text-sm font-medium text-white
+                         hover:bg-primary-700 transition">
             Process Batch
           </button>
         </div>
 
         <!-- ── Progress section ── -->
         <div id="batch-progress-section" class="hidden space-y-4 mb-6">
-          <h3 class="text-sm font-semibold text-dark-800">Progress</h3>
+          <h3 class="text-sm font-semibold text-dark-200">Progress</h3>
 
-          <!-- bar -->
           <div>
-            <div class="w-full bg-dark-100 rounded-full h-3 overflow-hidden">
+            <div class="w-full bg-dark-700 rounded-full h-3 overflow-hidden">
               <div id="progress-bar" class="h-full bg-green-500 rounded-full transition-all duration-300" style="width:0%"></div>
             </div>
-            <p class="text-xs text-dark-500 mt-1">
+            <p class="text-xs text-dark-400 mt-1">
               <span id="progress-pct">0</span>%
               (<span id="progress-done">0</span>/<span id="progress-total">0</span>)
             </p>
           </div>
 
-          <!-- controls -->
           <div class="flex gap-2">
             <button id="btn-pause" onclick="togglePause()"
-                    class="px-4 py-2 rounded-lg border border-dark-200 bg-white text-sm font-medium text-dark-700
-                           hover:bg-dark-50 transition">
+                    class="px-4 py-2 rounded-lg border border-dark-600 bg-dark-800 text-sm font-medium text-dark-200
+                           hover:bg-dark-700 transition">
               Pause
             </button>
             <button id="btn-retry" onclick="retryFailed()"
-                    class="hidden px-4 py-2 rounded-lg bg-amber-500 text-sm font-medium text-white
-                           hover:bg-amber-600 transition">
+                    class="hidden px-4 py-2 rounded-lg bg-amber-600 text-sm font-medium text-white
+                           hover:bg-amber-700 transition">
               Retry Failed (<span id="retry-count">0</span>)
             </button>
           </div>
 
-          <!-- recent operations log -->
           <div>
-            <p class="text-xs font-medium text-dark-500 mb-1">Recent Operations:</p>
-            <div id="recent-ops" class="rounded-lg bg-dark-900 text-xs font-mono text-dark-200 p-3 max-h-36 overflow-auto space-y-0.5"></div>
+            <p class="text-xs font-medium text-dark-400 mb-1">Recent Operations:</p>
+            <div id="recent-ops" class="rounded-lg bg-dark-950 text-xs font-mono text-dark-300 p-3 max-h-36 overflow-auto space-y-0.5"></div>
           </div>
         </div>
 
         <!-- ── Summary ── -->
-        <div id="batch-summary" class="hidden rounded-lg bg-dark-50 border border-dark-100 p-4 mb-4">
+        <div id="batch-summary" class="hidden rounded-lg bg-dark-800 border border-dark-700 p-4 mb-4">
           <div class="flex flex-wrap gap-4 text-sm">
-            <span class="font-medium text-dark-700">Total: <span id="bs-total" class="text-dark-900">0</span></span>
-            <span class="font-medium text-green-600">Success: <span id="bs-ok">0</span></span>
-            <span class="font-medium text-red-600">Failed: <span id="bs-fail">0</span></span>
+            <span class="font-medium text-dark-300">Total: <span id="bs-total" class="text-white">0</span></span>
+            <span class="font-medium text-green-400">Success: <span id="bs-ok">0</span></span>
+            <span class="font-medium text-red-400">Failed: <span id="bs-fail">0</span></span>
             <span class="font-medium text-dark-400">Skipped: <span id="bs-skip">0</span></span>
           </div>
         </div>
@@ -161,16 +160,16 @@
         <!-- ── Outcome table ── -->
         <div id="batch-results" class="hidden">
           <div class="flex items-center justify-between mb-2">
-            <h3 class="text-sm font-semibold text-dark-800">Outcome</h3>
+            <h3 class="text-sm font-semibold text-dark-200">Outcome</h3>
             <button onclick="exportResults()"
-                    class="px-3 py-1.5 rounded-lg border border-dark-200 bg-white text-xs font-medium text-dark-600
-                           hover:bg-dark-50 transition">
+                    class="px-3 py-1.5 rounded-lg border border-dark-600 bg-dark-800 text-xs font-medium text-dark-300
+                           hover:bg-dark-700 transition">
               Export Outcome
             </button>
           </div>
-          <div class="overflow-x-auto rounded-lg border border-dark-100 max-h-[420px] overflow-y-auto">
+          <div class="overflow-x-auto rounded-lg border border-dark-700 max-h-[420px] overflow-y-auto">
             <table class="min-w-full text-sm">
-              <thead class="bg-dark-50 text-dark-500 text-xs uppercase tracking-wider sticky top-0">
+              <thead class="bg-dark-800 text-dark-400 text-xs uppercase tracking-wider sticky top-0">
                 <tr>
                   <th class="px-4 py-2 text-left">Row</th>
                   <th class="px-4 py-2 text-left">DID</th>
@@ -179,7 +178,7 @@
                   <th class="px-4 py-2 text-left">Message</th>
                 </tr>
               </thead>
-              <tbody id="batch-tbody" class="divide-y divide-dark-100 bg-white"></tbody>
+              <tbody id="batch-tbody" class="divide-y divide-dark-700 bg-dark-900"></tbody>
             </table>
           </div>
         </div>
@@ -190,18 +189,18 @@
 </div>
 
 <!-- navigation guard modal -->
-<div id="nav-guard-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 animate-slide-up">
-    <h3 class="text-lg font-semibold text-dark-900 mb-2">Batch in progress</h3>
-    <p class="text-sm text-dark-500 mb-6">A batch operation is still running. Leaving this page will stop the process and discard results.</p>
+<div id="nav-guard-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
+  <div class="bg-dark-900 border border-dark-700 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 animate-slide-up">
+    <h3 class="text-lg font-semibold text-white mb-2">Batch in progress</h3>
+    <p class="text-sm text-dark-400 mb-6">A batch operation is still running. Leaving this page will stop the process and discard results.</p>
     <div class="flex gap-3 justify-end">
       <button id="nav-guard-stay"
               class="px-4 py-2 rounded-lg bg-primary-600 text-sm font-medium text-white hover:bg-primary-700 transition">
         Stay on page
       </button>
       <button id="nav-guard-leave"
-              class="px-4 py-2 rounded-lg border border-dark-200 bg-white text-sm font-medium text-dark-700
-                     hover:bg-dark-50 transition">
+              class="px-4 py-2 rounded-lg border border-dark-600 bg-dark-800 text-sm font-medium text-dark-200
+                     hover:bg-dark-700 transition">
         Leave
       </button>
     </div>
@@ -220,11 +219,11 @@ let allVariants = [];
 function switchTab(tab){
   currentTab = tab;
   document.getElementById('tab-primary').className =
-    'tab-btn px-5 py-2 rounded-lg text-sm font-medium transition ' +
-    (tab==='primary' ? 'bg-primary-600 text-white' : 'bg-dark-100 text-dark-600 hover:bg-dark-200');
+    'tab-btn pb-2.5 text-sm font-medium transition border-b-2 -mb-px ' +
+    (tab==='primary' ? 'border-primary-500 text-primary-400' : 'border-transparent text-dark-400 hover:text-dark-200');
   document.getElementById('tab-sub').className =
-    'tab-btn px-5 py-2 rounded-lg text-sm font-medium transition ' +
-    (tab==='sub' ? 'bg-indigo-600 text-white' : 'bg-dark-100 text-dark-600 hover:bg-dark-200');
+    'tab-btn pb-2.5 text-sm font-medium transition border-b-2 -mb-px ' +
+    (tab==='sub' ? 'border-primary-500 text-primary-400' : 'border-transparent text-dark-400 hover:text-dark-200');
   document.getElementById('sub-picker').classList.toggle('hidden', tab==='primary');
   if(tab==='primary') loadPrimaryVariants();
   else if(subSellers.length) onSubSellerChange();
@@ -280,9 +279,9 @@ function renderVariantDropdown(list){
     return;
   }
   dd.innerHTML = list.map(v =>
-    `<div class="px-4 py-2.5 text-sm cursor-pointer hover:bg-primary-50 transition truncate"
+    `<div class="px-4 py-2.5 text-sm cursor-pointer hover:bg-dark-700 transition truncate"
           data-id="${v.id}" onclick="selectVariant('${v.id}','${v.name.replace(/'/g,"\\'")}')">
-       <span class="font-medium text-dark-800">${v.name}</span>
+       <span class="font-medium text-dark-100">${v.name}</span>
        <span class="ml-1 text-dark-400 text-xs font-mono">${v.id}</span>
      </div>`
   ).join('');
@@ -315,17 +314,18 @@ async function querySingleDid(){
   const d = await api(`{% url "tbft_api_query_did" %}?device_id=${encodeURIComponent(did)}`);
   if(!d) return;
   if(d.error){
-    box.innerHTML = `<p class="text-red-600">${d.error}</p>`;
+    box.innerHTML = `<p class="text-red-400">${d.error}</p>`;
     return;
   }
   const bound = d.device_variant_id ? true : false;
   box.innerHTML = `
-    <p><span class="text-dark-400">Device ID:</span> <span class="font-mono">${d.device_id||did}</span></p>
-    <p><span class="text-dark-400">Device ID Type:</span> ${d.device_id_type||'—'}</p>
-    <p><span class="text-dark-400">Model:</span> ${d.device_model_name||'—'}</p>
-    <p><span class="text-dark-400">Variant ID:</span> ${d.device_variant_id||'<em class="text-dark-300">none</em>'}</p>
-    <p><span class="text-dark-400">Variant Name:</span> ${d.device_variant_name||'<em class="text-dark-300">none</em>'}</p>
-    <p class="mt-2 font-medium ${bound?'text-amber-600':'text-green-600'}">
+    <p><span class="text-dark-400">Device ID:</span> <span class="font-mono text-dark-200">${d.device_id||did}</span></p>
+    <p><span class="text-dark-400">Device ID Type:</span> <span class="text-dark-200">${d.device_id_type||'—'}</span></p>
+    <p><span class="text-dark-400">Model:</span> <span class="text-dark-200">${d.device_model_name||'—'}</span></p>
+    <p><span class="text-dark-400">Model ID:</span> <span class="font-mono text-dark-200">${d.device_model_id||'—'}</span></p>
+    <p><span class="text-dark-400">Variant ID:</span> <span class="text-dark-200">${d.device_variant_id||'<em class="text-dark-500">none</em>'}</span></p>
+    <p><span class="text-dark-400">Variant Name:</span> <span class="text-dark-200">${d.device_variant_name||'<em class="text-dark-500">none</em>'}</span></p>
+    <p class="mt-2 font-medium ${bound?'text-amber-400':'text-green-400'}">
       ${bound ? 'Already bound — will use UPDATE' : 'Not bound — will use ASSIGN'}
     </p>`;
 }
@@ -355,14 +355,14 @@ async function bindSingleDid(action){
   if(d.status==='Success'){
     const act = d.performed_action || '';
     if(act === 'none'){
-      box.innerHTML = `<p class="text-green-600 font-medium">✓ No action needed — already has variant id: ${d.existing_variant_id || vid}</p>`;
+      box.innerHTML = `<p class="text-green-400 font-medium">✓ No action needed — already has variant id: ${d.existing_variant_id || vid}</p>`;
     } else if(act === 'update'){
-      box.innerHTML = `<p class="text-green-600 font-medium">✓ Updated to variant id: ${d.target_variant_id || vid}</p>`;
+      box.innerHTML = `<p class="text-green-400 font-medium">✓ Updated to variant id: ${d.target_variant_id || vid}</p>`;
     } else {
-      box.innerHTML = `<p class="text-green-600 font-medium">✓ Assigned to variant id: ${d.target_variant_id || vid}</p>`;
+      box.innerHTML = `<p class="text-green-400 font-medium">✓ Assigned to variant id: ${d.target_variant_id || vid}</p>`;
     }
   } else {
-    box.innerHTML = `<p class="text-red-600 font-medium">✗ Failed: ${d.message||d.error||JSON.stringify(d)}</p>`;
+    box.innerHTML = `<p class="text-red-400 font-medium">✗ Failed: ${d.message||d.error||JSON.stringify(d)}</p>`;
   }
 }
 
@@ -411,24 +411,24 @@ function updateProgress(){
 
 function addRecentOp(did, status, message){
   const el = document.getElementById('recent-ops');
-  const color = status==='success' ? 'text-green-400' : status==='failed' ? 'text-red-400' : 'text-dark-400';
+  const color = status==='success' ? 'text-green-400' : status==='failed' ? 'text-red-400' : 'text-dark-500';
   const line = document.createElement('div');
-  line.innerHTML = `<span class="text-dark-500">${did}</span> - <span class="${color}">${status}</span> - ${message}`;
+  line.innerHTML = `<span class="text-dark-400">${did}</span> - <span class="${color}">${status}</span> - ${message}`;
   el.prepend(line);
   while(el.children.length > 50) el.removeChild(el.lastChild);
 }
 
 function addResultRow(r){
   const tbody = document.getElementById('batch-tbody');
-  const cls = r.status==='success'?'text-green-600':r.status==='failed'?'text-red-600':'text-dark-400';
+  const cls = r.status==='success'?'text-green-400':r.status==='failed'?'text-red-400':'text-dark-500';
   const tr = document.createElement('tr');
   tr.id = 'row-'+r.row;
   tr.innerHTML = `
-    <td class="px-4 py-2 text-dark-500">${r.row}</td>
-    <td class="px-4 py-2 font-mono text-dark-800 text-xs">${r.device_id||'—'}</td>
+    <td class="px-4 py-2 text-dark-400">${r.row}</td>
+    <td class="px-4 py-2 font-mono text-dark-200 text-xs">${r.device_id||'—'}</td>
     <td class="px-4 py-2 font-medium ${cls}">${r.status}</td>
-    <td class="px-4 py-2">${r.action||'—'}</td>
-    <td class="px-4 py-2 text-dark-500 text-xs">${r.message}</td>`;
+    <td class="px-4 py-2 text-dark-300">${r.action||'—'}</td>
+    <td class="px-4 py-2 text-dark-400 text-xs">${r.message}</td>`;
   tbody.appendChild(tr);
   document.getElementById('batch-results').classList.remove('hidden');
 }
@@ -436,13 +436,13 @@ function addResultRow(r){
 function updateResultRow(r){
   const existing = document.getElementById('row-'+r.row);
   if(existing){
-    const cls = r.status==='success'?'text-green-600':r.status==='failed'?'text-red-600':'text-dark-400';
+    const cls = r.status==='success'?'text-green-400':r.status==='failed'?'text-red-400':'text-dark-500';
     existing.innerHTML = `
-      <td class="px-4 py-2 text-dark-500">${r.row}</td>
-      <td class="px-4 py-2 font-mono text-dark-800 text-xs">${r.device_id||'—'}</td>
+      <td class="px-4 py-2 text-dark-400">${r.row}</td>
+      <td class="px-4 py-2 font-mono text-dark-200 text-xs">${r.device_id||'—'}</td>
       <td class="px-4 py-2 font-medium ${cls}">${r.status}</td>
-      <td class="px-4 py-2">${r.action||'—'}</td>
-      <td class="px-4 py-2 text-dark-500 text-xs">${r.message}</td>`;
+      <td class="px-4 py-2 text-dark-300">${r.action||'—'}</td>
+      <td class="px-4 py-2 text-dark-400 text-xs">${r.message}</td>`;
   }
 }
 

@@ -55,12 +55,22 @@
       white-space: nowrap;
       transition: all 0.2s;
     }
-    .sidebar-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
     .sidebar-link.active { background: rgba(2,111,199,0.2); color: #38aaf8; }
+    .glass-sidebar {
+      background: rgba(18,19,22,0.75);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    .glass-topbar {
+      background: rgba(18,19,22,0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="h-full bg-dark-50 font-sans antialiased">
+<body class="h-full bg-dark-950 font-sans antialiased text-dark-200">
   {% block body %}{% endblock %}
 
   <script>
