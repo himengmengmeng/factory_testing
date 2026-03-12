@@ -327,11 +327,10 @@ async function querySingleDid(){
 
   const d = await api(`{% url "tbft_api_query_did" %}?device_id=${encodeURIComponent(did)}`);
   if(!d) return;
-  if(d.error){
-    box.innerHTML = `<p class="text-red-400">${d.error}</p>`;
+  if(d.error || d.code === 'not_found'){
+    box.innerHTML = `<p class="text-red-400">Device not found</p>`;
     return;
   }
-  const bound = d.device_variant_id ? true : false;
   box.innerHTML = `
     <p><span class="text-dark-400">Device ID:</span> <span class="font-mono text-dark-200">${d.device_id||did}</span></p>
     <p><span class="text-dark-400">Device ID Type:</span> <span class="text-dark-200">${d.device_id_type||'—'}</span></p>
