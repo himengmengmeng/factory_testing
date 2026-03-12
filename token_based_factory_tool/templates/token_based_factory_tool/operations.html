@@ -40,12 +40,20 @@
       <div class="mb-8 animate-slide-up relative max-w-md" id="variant-picker-wrap">
         <label class="block text-sm font-medium text-dark-300 mb-1.5">Target Variant</label>
         <input type="hidden" id="variant-select" value="">
-        <input type="text" id="variant-search" autocomplete="off"
-               placeholder="Search or select a variant…"
-               onfocus="showVariantDropdown()" oninput="filterVariants()"
-               class="w-full rounded-lg border border-dark-600 bg-dark-800 text-dark-100 px-4 py-2.5 text-sm
-                      placeholder:text-dark-500
-                      focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
+        <div class="relative">
+          <input type="text" id="variant-search" autocomplete="off"
+                 placeholder="Search or select a variant…"
+                 onfocus="showVariantDropdown()" oninput="filterVariants()"
+                 class="w-full rounded-lg border border-dark-600 bg-dark-800 text-dark-300 px-4 py-2.5 pr-9 text-sm
+                        placeholder:text-dark-500
+                        focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
+          <button id="variant-clear" onclick="clearVariant()" type="button"
+                  class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-500 hover:text-dark-200 transition">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
         <div id="variant-dropdown"
              class="hidden absolute left-0 right-0 top-full mt-1 max-h-60 overflow-auto
                     rounded-lg border border-dark-600 bg-dark-800 shadow-lg z-50"></div>
@@ -64,7 +72,7 @@
           <div class="flex-1 min-w-[220px]">
             <label class="block text-xs text-dark-400 mb-1">Device ID (DID)</label>
             <input id="single-did" type="text" placeholder="Enter device ID…"
-                   class="w-full rounded-lg border border-dark-600 bg-dark-800 text-dark-100 px-4 py-2.5 text-sm font-mono
+                   class="w-full rounded-lg border border-dark-600 bg-dark-800 text-dark-300 px-4 py-2.5 text-sm font-mono
                           placeholder:text-dark-500
                           focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
           </div>
@@ -291,6 +299,12 @@ function selectVariant(id, name){
   document.getElementById('variant-select').value = id;
   document.getElementById('variant-search').value = `${name}  (${id})`;
   document.getElementById('variant-dropdown').classList.add('hidden');
+  document.getElementById('variant-clear').classList.remove('hidden');
+}
+function clearVariant(){
+  document.getElementById('variant-select').value = '';
+  document.getElementById('variant-search').value = '';
+  document.getElementById('variant-clear').classList.add('hidden');
 }
 function showVariantDropdown(){ filterVariants(); document.getElementById('variant-dropdown').classList.remove('hidden'); }
 function filterVariants(){
