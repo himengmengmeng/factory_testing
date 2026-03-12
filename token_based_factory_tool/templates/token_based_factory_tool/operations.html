@@ -338,10 +338,7 @@ async function querySingleDid(){
     <p><span class="text-dark-400">Model:</span> <span class="text-dark-200">${d.device_model_name||'—'}</span></p>
     <p><span class="text-dark-400">Model ID:</span> <span class="font-mono text-dark-200">${d.device_model_id||'—'}</span></p>
     <p><span class="text-dark-400">Variant ID:</span> <span class="text-dark-200">${d.device_variant_id||'<em class="text-dark-500">none</em>'}</span></p>
-    <p><span class="text-dark-400">Variant Name:</span> <span class="text-dark-200">${d.device_variant_name||'<em class="text-dark-500">none</em>'}</span></p>
-    <p class="mt-2 font-medium ${bound?'text-amber-400':'text-green-400'}">
-      ${bound ? 'Already bound — will use UPDATE' : 'Not bound — will use ASSIGN'}
-    </p>`;
+    <p><span class="text-dark-400">Variant Name:</span> <span class="text-dark-200">${d.device_variant_name||'<em class="text-dark-500">none</em>'}</span></p>`;
 }
 
 async function bindSingleDid(action){
