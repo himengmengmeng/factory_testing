@@ -1,8 +1,14 @@
-{% comment %}sidebar partial — dark frosted glass{% endcomment %}
-<aside class="w-64 min-h-full glass-sidebar text-white flex flex-col flex-shrink-0 border-r border-white/5">
+{% comment %}sidebar partial — dark frosted glass, responsive{% endcomment %}
+
+<!-- mobile overlay -->
+<div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+
+<aside id="sidebar"
+       class="fixed inset-y-0 left-0 z-50 w-64 glass-sidebar text-white flex flex-col border-r border-white/5
+              -translate-x-full lg:translate-x-0 lg:static lg:z-auto transition-transform duration-200">
 
   <!-- brand -->
-  <div class="h-14 px-6 flex items-center border-b border-white/5">
+  <div class="h-14 px-6 flex items-center border-b border-white/5 justify-between">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center flex-shrink-0">
         <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -12,10 +18,14 @@
                    M9 9h6v6H9V9z"/>
         </svg>
       </div>
-      <div>
-        <p class="text-sm font-bold leading-tight">Factory Tool</p>
-      </div>
+      <p class="text-sm font-bold leading-tight">Factory Tool</p>
     </div>
+    <!-- close button (mobile only) -->
+    <button onclick="toggleSidebar()" class="lg:hidden text-dark-400 hover:text-white transition">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 
   <!-- nav -->
@@ -47,3 +57,10 @@
     </a>
   </nav>
 </aside>
+
+<script>
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('-translate-x-full');
+  document.getElementById('sidebar-overlay').classList.toggle('hidden');
+}
+</script>

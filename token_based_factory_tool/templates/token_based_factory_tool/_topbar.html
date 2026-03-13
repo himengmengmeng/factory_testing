@@ -1,5 +1,12 @@
 {% comment %}top navigation bar with user info — dark frosted glass{% endcomment %}
-<header class="h-14 glass-topbar border-b border-white/5 flex items-center justify-end px-6 sticky top-0 z-30">
+<header class="h-14 glass-topbar border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-30">
+  <!-- hamburger (mobile only) -->
+  <button onclick="toggleSidebar()" class="lg:hidden text-dark-400 hover:text-white transition">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+    </svg>
+  </button>
+  <div class="hidden lg:block"></div>
   <div class="relative" id="user-dropdown-wrap">
     <button onclick="document.getElementById('user-menu').classList.toggle('hidden')"
             class="flex items-center gap-3 hover:opacity-90 transition">
