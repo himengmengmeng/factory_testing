@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# ─────────── Configuration ───────────
-SERVER_IP="43.135.3.78"
-SERVER_USER="ubuntu"
-DOMAIN="mengmeng.plus"
-PROJECT_DIR="/home/ubuntu/factory_testing"
+# ─────────── Configuration (edit before use) ───────────
+SERVER_IP="${SERVER_IP:?Set SERVER_IP}"
+SERVER_USER="${SERVER_USER:-ubuntu}"
+DOMAIN="${DOMAIN:-mengmeng.plus}"
+PROJECT_DIR="/home/${SERVER_USER}/factory_testing"
 REPO_URL="https://github.com/himengmengmeng/factory_testing.git"
 
 echo "========================================="
@@ -15,7 +15,7 @@ echo "========================================="
 ssh ${SERVER_USER}@${SERVER_IP} << 'REMOTE_SCRIPT'
 set -e
 
-echo ">>> [1/5] Installing Docker..."
+echo ">>> [1/4] Installing Docker..."
 if ! command -v docker &> /dev/null; then
     sudo apt-get update
     sudo apt-get install -y ca-certificates curl gnupg
@@ -31,76 +31,32 @@ else
     echo "Docker already installed"
 fi
 
-echo ">>> [2/5] Cloning / updating project..."
-if [ -d "/home/ubuntu/factory_testing" ]; then
-    cd /home/ubuntu/factory_testing
+echo ">>> [2/4] Cloning / updating project..."
+if [ -d "/home/$USER/factory_testing" ]; then
+    cd /home/$USER/factory_testing
     git pull origin main || git pull origin master || true
 else
-    cd /home/ubuntu
+    cd /home/$USER
     git clone https://github.com/himengmengmeng/factory_testing.git
-    cd /home/ubuntu/factory_testing
+    cd /home/$USER/factory_testing
 fi
 
-echo ">>> [3/5] Creating .env file..."
+echo ">>> [3/4] Checking .env file..."
 if [ ! -f .env ]; then
-    cat > .env << 'ENV_EOF'
-DJANGO_SECRET_KEY=factory-testing-prod-secret-key-2026-change-me
-DJANGO_DEBUG=False
-DJANGO_ALLOWED_HOSTS=mengmeng.plus,www.mengmeng.plus,43.135.3.78,localhost
-DB_NAME=factory_testing
-DB_USER=root
-DB_PASSWORD=FactoryTest2026!
-CSRF_TRUSTED_ORIGINS=https://mengmeng.plus,https://www.mengmeng.plus
-ENV_EOF
-    echo ".env file created"
-else
-    echo ".env file already exists, skipping"
+    echo "ERROR: .env file not found! Create it first with:"
+    echo "  cp .env.example .env"
+    echo "  nano .env  # fill in your values"
+    exit 1
 fi
 
-echo ">>> [4/5] Setting up initial Nginx (HTTP only for certbot)..."
-mkdir -p nginx
-cat > nginx/default.conf << 'NGINX_EOF'
-upstream django {
-    server web:8000;
-}
-
-server {
-    listen 80;
-    server_name mengmeng.plus www.mengmeng.plus 43.135.3.78;
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-
-    location /static/ {
-        alias /app/staticfiles/;
-    }
-
-    location / {
-        proxy_pass http://django;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_redirect off;
-        client_max_body_size 20M;
-    }
-}
-NGINX_EOF
-
-echo ">>> [5/5] Building and starting containers..."
+echo ">>> [4/4] Building and starting containers..."
 sudo docker compose down 2>/dev/null || true
 sudo docker compose up -d --build
 
 echo ""
 echo "========================================="
 echo "  Deployment complete!"
-echo "  HTTP: http://43.135.3.78/factory-tool/login/"
-echo "  HTTP: http://mengmeng.plus/factory-tool/login/"
 echo "========================================="
-echo ""
-echo "Next: Run SSL setup with:"
-echo "  ssh ubuntu@43.135.3.78 'cd /home/ubuntu/factory_testing && sudo bash setup-ssl.sh'"
 REMOTE_SCRIPT
 
-echo "Done! Check the server at http://${SERVER_IP}/factory-tool/login/"
+echo "Done!"

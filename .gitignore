@@ -1,2 +1,11 @@
 __pycache__/
 *.pyc
+*.pyo
+.venv/
+.env
+.env.production
+!.env.example
+db.sqlite3
+staticfiles/
+.DS_Store
+.vscode/
