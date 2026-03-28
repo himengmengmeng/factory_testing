@@ -26,14 +26,26 @@
       </div>
 
       <!-- ─── Sub-seller picker (hidden for primary) ─── -->
-      <div id="sub-picker" class="hidden mb-6 animate-slide-up">
+      <div id="sub-picker" class="hidden mb-6 animate-slide-up relative max-w-md" id="sub-seller-picker-wrap">
         <label class="block text-sm font-medium text-dark-300 mb-1.5">Select Sub-Seller</label>
-        <select id="sub-seller-select"
-                onchange="onSubSellerChange()"
-                class="w-full max-w-md rounded-lg border border-dark-600 bg-dark-800 text-dark-100 px-4 py-2.5 text-sm
-                       focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
-          <option value="">— loading sub-sellers —</option>
-        </select>
+        <input type="hidden" id="sub-seller-select" value="">
+        <div class="relative">
+          <input type="text" id="sub-seller-search" autocomplete="off"
+                 placeholder="Search or select a sub-seller…"
+                 onfocus="showSubSellerDropdown()" oninput="filterSubSellers()"
+                 class="w-full rounded-lg border border-dark-600 bg-dark-800 text-dark-300 px-4 py-2.5 pr-9 text-sm
+                        placeholder:text-dark-500
+                        focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none transition">
+          <button id="sub-seller-clear" onclick="clearSubSeller()" type="button"
+                  class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-dark-500 hover:text-dark-200 transition">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div id="sub-seller-dropdown"
+             class="hidden absolute left-0 right-0 top-full mt-1 max-h-60 overflow-auto
+                    rounded-lg border border-dark-600 bg-dark-800 shadow-lg z-50"></div>
       </div>
 
       <!-- ─── Variant picker (searchable) ─── -->
@@ -256,12 +268,56 @@ async function loadSubSellers(){
   const d = await api('{% url "tbft_api_sub_sellers" %}');
   if(!d) return;
   subSellers = d.items || [];
-  const sel = document.getElementById('sub-seller-select');
-  sel.innerHTML = '<option value="">— select sub-seller —</option>' +
-    subSellers.map(s => {
-      const name = s.company?.name || s.id;
-      return `<option value="${s.id}">${name} (${s.id})</option>`;
-    }).join('');
+  renderSubSellerDropdown(subSellers);
+}
+
+function renderSubSellerDropdown(list){
+  const dd = document.getElementById('sub-seller-dropdown');
+  if(!list.length){
+    dd.innerHTML = '<div class="px-4 py-3 text-sm text-dark-400">No sub-sellers available</div>';
+    return;
+  }
+  dd.innerHTML = list.map(s => {
+    const name = s.company?.name || s.id;
+    return `<div class="px-4 py-2.5 text-sm cursor-pointer hover:bg-dark-700 transition truncate"
+                 onclick="selectSubSeller('${s.id}','${name.replace(/'/g,"\\'")}')">
+       <span class="font-medium text-dark-100">${name}</span>
+       <span class="ml-1 text-dark-400 text-xs font-mono">${s.id}</span>
+     </div>`;
+  }).join('');
+}
+
+function selectSubSeller(id, name){
+  document.getElementById('sub-seller-select').value = id;
+  document.getElementById('sub-seller-search').value = `${name}  (${id})`;
+  document.getElementById('sub-seller-dropdown').classList.add('hidden');
+  document.getElementById('sub-seller-clear').classList.remove('hidden');
+  onSubSellerChange();
+}
+
+function clearSubSeller(){
+  document.getElementById('sub-seller-select').value = '';
+  document.getElementById('sub-seller-search').value = '';
+  document.getElementById('sub-seller-clear').classList.add('hidden');
+  onSubSellerChange();
+}
+
+function showSubSellerDropdown(){
+  if(document.getElementById('sub-seller-select').value){
+    renderSubSellerDropdown(subSellers);
+  } else {
+    filterSubSellers();
+  }
+  document.getElementById('sub-seller-dropdown').classList.remove('hidden');
+}
+
+function filterSubSellers(){
+  const q = document.getElementById('sub-seller-search').value.toLowerCase();
+  renderSubSellerDropdown(subSellers.filter(s => {
+    const name = (s.company?.name || '').toLowerCase();
+    return name.includes(q) || s.id.toLowerCase().includes(q);
+  }));
+  document.getElementById('sub-seller-dropdown').classList.remove('hidden');
 }
 
 async function onSubSellerChange(){
@@ -306,15 +362,24 @@ function clearVariant(){
   document.getElementById('variant-search').value = '';
   document.getElementById('variant-clear').classList.add('hidden');
 }
-function showVariantDropdown(){ filterVariants(); document.getElementById('variant-dropdown').classList.remove('hidden'); }
+function showVariantDropdown(){
+  if(document.getElementById('variant-select').value){
+    renderVariantDropdown(allVariants);
+  } else {
+    filterVariants();
+  }
+  document.getElementById('variant-dropdown').classList.remove('hidden');
+}
 function filterVariants(){
   const q = document.getElementById('variant-search').value.toLowerCase();
   renderVariantDropdown(allVariants.filter(v => v.name.toLowerCase().includes(q) || v.id.toLowerCase().includes(q)));
   document.getElementById('variant-dropdown').classList.remove('hidden');
 }
 document.addEventListener('click', function(e){
-  const wrap = document.getElementById('variant-picker-wrap');
-  if(wrap && !wrap.contains(e.target)) document.getElementById('variant-dropdown').classList.add('hidden');
+  const vWrap = document.getElementById('variant-picker-wrap');
+  if(vWrap && !vWrap.contains(e.target)) document.getElementById('variant-dropdown').classList.add('hidden');
+  const sWrap = document.getElementById('sub-picker');
+  if(sWrap && !sWrap.contains(e.target)) document.getElementById('sub-seller-dropdown').classList.add('hidden');
 });
 
 /* ═══════════ Single DID ═══════════ */
