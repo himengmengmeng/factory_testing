@@ -234,6 +234,9 @@ const CSRF = getCsrf();
 let currentTab = 'primary';
 let subSellers = [];
 let allVariants = [];
+let selectedVariantName = '';
+let selectedSubSellerName = '';
+const PRIMARY_SELLER_NAME = ("{{ first_name|escapejs }} {{ last_name|escapejs }}").trim() || "{{ email|escapejs }}";
 
 /* ═══════════ Tabs ═══════════ */
 function switchTab(tab){
@@ -292,6 +295,7 @@ function selectSubSeller(id, name){
   document.getElementById('sub-seller-search').value = `${name}  (${id})`;
   document.getElementById('sub-seller-dropdown').classList.add('hidden');
   document.getElementById('sub-seller-clear').classList.remove('hidden');
+  selectedSubSellerName = name;
   onSubSellerChange();
 }
 
@@ -299,6 +303,7 @@ function clearSubSeller(){
   document.getElementById('sub-seller-select').value = '';
   document.getElementById('sub-seller-search').value = '';
   document.getElementById('sub-seller-clear').classList.add('hidden');
+  selectedSubSellerName = '';
   onSubSellerChange();
 }
 
@@ -333,6 +338,7 @@ async function onSubSellerChange(){
 function populateVariantSelect(list){
   document.getElementById('variant-select').value = '';
   document.getElementById('variant-search').value = '';
+  selectedVariantName = '';
   renderVariantDropdown(list);
 }
 
@@ -356,11 +362,13 @@ function selectVariant(id, name){
   document.getElementById('variant-search').value = `${name}  (${id})`;
   document.getElementById('variant-dropdown').classList.add('hidden');
   document.getElementById('variant-clear').classList.remove('hidden');
+  selectedVariantName = name;
 }
 function clearVariant(){
   document.getElementById('variant-select').value = '';
   document.getElementById('variant-search').value = '';
   document.getElementById('variant-clear').classList.add('hidden');
+  selectedVariantName = '';
 }
 function showVariantDropdown(){
   if(document.getElementById('variant-select').value){
@@ -521,9 +529,11 @@ function updateResultRow(r){
   }
 }
 
-async function processSingleDID(row, did, vid, subSellerId){
+async function processSingleDID(row, did, vid, subSellerId, sellerName, productName){
   const payload = { did, variant_id: vid, action: 'auto' };
   if(subSellerId) payload.sub_seller_id = subSellerId;
+
+  const base = { row, device_id:did, seller_name: sellerName||'', product_name: productName||'' };
 
   try {
     const d = await api('{% url "tbft_api_bind_did" %}', {
@@ -531,34 +541,36 @@ async function processSingleDID(row, did, vid, subSellerId){
       headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
       body: JSON.stringify(payload),
     });
-    if(!d) return { row, device_id:did, status:'failed', action:'', message:'Auth expired' };
+    if(!d) return { ...base, status:'failed', action:'', message:'Auth expired' };
 
     const act = d.performed_action || '';
 
     if(d.status==='Success'){
       if(act === 'none'){
         const eid = d.existing_variant_id || vid;
-        return { row, device_id:did, status:'success', action:'none',
+        return { ...base, status:'success', action:'none',
                  message:`already has variant id: ${eid}` };
       } else if(act === 'update'){
-        return { row, device_id:did, status:'success', action:'update',
+        return { ...base, status:'success', action:'update',
                  message:`updated to variant id: ${d.target_variant_id || vid}` };
       } else {
-        return { row, device_id:did, status:'success', action:'assign',
+        return { ...base, status:'success', action:'assign',
                  message:`assigned to variant id: ${d.target_variant_id || vid}` };
       }
     } else {
-      return { row, device_id:did, status:'failed', action:act,
+      return { ...base, status:'failed', action:act,
                message:d.message||d.error||JSON.stringify(d) };
     }
   } catch(e){
-    return { row, device_id:did, status:'failed', action:'', message:e.message };
+    return { ...base, status:'failed', action:'', message:e.message };
   }
 }
 
 async function runBatchLoop(startIdx){
   const vid = document.getElementById('variant-select').value;
   const subSellerId = currentTab==='sub' ? document.getElementById('sub-seller-select').value : '';
+  const sellerName = currentTab==='sub' ? selectedSubSellerName : PRIMARY_SELLER_NAME;
+  const productName = selectedVariantName;
 
   for(let i=startIdx; i<batchRows.length; i++){
     while(batchPaused){
@@ -568,7 +580,7 @@ async function runBatchLoop(startIdx){
     if(!batchRunning) return;
 
     const did = batchRows[i].device_id;
-    const result = await processSingleDID(i+1, did, vid, subSellerId);
+    const result = await processSingleDID(i+1, did, vid, subSellerId, sellerName, productName);
 
     const existingIdx = batchResults.findIndex(r=>r.row===result.row);
     if(existingIdx>=0){
@@ -638,6 +650,8 @@ async function retryFailed(){
 
   const vid = document.getElementById('variant-select').value;
   const subSellerId = currentTab==='sub' ? document.getElementById('sub-seller-select').value : '';
+  const sellerName = currentTab==='sub' ? selectedSubSellerName : PRIMARY_SELLER_NAME;
+  const productName = selectedVariantName;
 
   batchRunning = true;
   batchPaused = false;
@@ -655,7 +669,7 @@ async function retryFailed(){
     }
     if(!batchRunning) return;
 
-    const result = await processSingleDID(item.row, item.device_id, vid, subSellerId);
+    const result = await processSingleDID(item.row, item.device_id, vid, subSellerId, sellerName, productName);
     const idx = batchResults.findIndex(r=>r.row===result.row);
     if(idx>=0) batchResults[idx] = result;
     updateResultRow(result);
@@ -679,9 +693,10 @@ async function retryFailed(){
 
 function exportResults(){
   if(!batchResults.length) return;
-  let csv = 'Row,Device Id,State,Operation,Message\n';
+  const esc = s => (s||'').toString().replace(/"/g,'""');
+  let csv = 'Row,Seller Name,Product Name,Device Id,State,Operation,Message\n';
   batchResults.forEach(r=>{
-    csv += `${r.row},"${r.device_id}",${r.status},${r.action},"${(r.message||'').replace(/"/g,'""')}"\n`;
+    csv += `${r.row},"${esc(r.seller_name)}","${esc(r.product_name)}","${r.device_id}",${r.status},${r.action},"${esc(r.message)}"\n`;
   });
   const blob = new Blob([csv], {type:'text/csv'});
   const a = document.createElement('a');
