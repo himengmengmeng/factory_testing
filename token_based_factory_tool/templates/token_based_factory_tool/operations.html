@@ -203,6 +203,113 @@
           </div>
         </div>
       </section>
+
+      <!-- ═══════ Adding Product Name and so forth ═══════ -->
+      <section class="bg-dark-900 rounded-2xl border border-dark-700 p-6 mt-8">
+        <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+          Adding Product Name and so forth
+        </h2>
+        <p class="text-xs text-dark-400 mb-4">
+          Upload an activated devices CSV (with a <code class="bg-dark-700 px-1 rounded text-dark-200">Device Id</code> column).
+          Each Device Id will be queried and 4 new columns appended:
+          <code class="bg-dark-700 px-1 rounded text-dark-200">Model Name</code>,
+          <code class="bg-dark-700 px-1 rounded text-dark-200">Product Name</code>,
+          <code class="bg-dark-700 px-1 rounded text-dark-200">Product ID</code>,
+          <code class="bg-dark-700 px-1 rounded text-dark-200">Device ID Type</code>.
+        </p>
+
+        <!-- file + start -->
+        <div class="flex flex-wrap gap-3 items-end mb-6">
+          <div class="flex-1 min-w-[220px]">
+            <label class="block text-xs text-dark-400 mb-1">CSV File</label>
+            <input id="enrich-csv-file" type="file" accept=".csv"
+                   class="w-full text-sm text-dark-300 file:mr-3 file:py-2 file:px-4
+                          file:rounded-lg file:border-0 file:text-sm file:font-medium
+                          file:bg-dark-700 file:text-dark-200 hover:file:bg-dark-600
+                          cursor-pointer">
+          </div>
+          <button id="enrich-btn-start" onclick="startEnrichBatch()"
+                  class="px-5 py-2.5 rounded-lg bg-emerald-600 text-sm font-medium text-white
+                         hover:bg-emerald-700 transition">
+            Process Enrichment
+          </button>
+        </div>
+
+        <!-- ── Progress section ── -->
+        <div id="enrich-progress-section" class="hidden space-y-4 mb-6">
+          <h3 class="text-sm font-semibold text-dark-200">Progress</h3>
+
+          <div>
+            <div class="w-full bg-dark-700 rounded-full h-3 overflow-hidden">
+              <div id="enrich-progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width:0%"></div>
+            </div>
+            <p class="text-xs text-dark-400 mt-1">
+              <span id="enrich-progress-pct">0</span>%
+              (<span id="enrich-progress-done">0</span>/<span id="enrich-progress-total">0</span>)
+            </p>
+          </div>
+
+          <div class="flex gap-2">
+            <button id="enrich-btn-pause" onclick="toggleEnrichPause()"
+                    class="px-4 py-2 rounded-lg border border-dark-600 bg-dark-800 text-sm font-medium text-dark-200
+                           hover:bg-dark-700 transition">
+              Pause
+            </button>
+            <button id="enrich-btn-retry" onclick="retryEnrichFailed()"
+                    class="hidden px-4 py-2 rounded-lg bg-amber-600 text-sm font-medium text-white
+                           hover:bg-amber-700 transition">
+              Retry Failed (<span id="enrich-retry-count">0</span>)
+            </button>
+          </div>
+
+          <div>
+            <p class="text-xs font-medium text-dark-400 mb-1">Recent Queries:</p>
+            <div id="enrich-recent-ops" class="rounded-lg bg-dark-950 text-xs font-mono text-dark-300 p-3 max-h-36 overflow-auto space-y-0.5"></div>
+          </div>
+        </div>
+
+        <!-- ── Summary ── -->
+        <div id="enrich-batch-summary" class="hidden rounded-lg bg-dark-800 border border-dark-700 p-4 mb-4">
+          <div class="flex flex-wrap gap-4 text-sm">
+            <span class="font-medium text-dark-300">Total: <span id="es-total" class="text-white">0</span></span>
+            <span class="font-medium text-green-400">Success: <span id="es-ok">0</span></span>
+            <span class="font-medium text-red-400">Failed: <span id="es-fail">0</span></span>
+            <span class="font-medium text-dark-400">Skipped: <span id="es-skip">0</span></span>
+          </div>
+        </div>
+
+        <!-- ── Outcome table ── -->
+        <div id="enrich-batch-results" class="hidden">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-semibold text-dark-200">Enriched Rows</h3>
+            <button onclick="exportEnrichedCSV()"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-600 text-xs font-medium text-white
+                           hover:bg-emerald-700 transition">
+              Export Enriched CSV
+            </button>
+          </div>
+          <div class="overflow-x-auto rounded-lg border border-dark-700 max-h-[420px] overflow-y-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-dark-800 text-dark-400 text-xs uppercase tracking-wider sticky top-0">
+                <tr>
+                  <th class="px-4 py-2 text-left">Row</th>
+                  <th class="px-4 py-2 text-left">Device Id</th>
+                  <th class="px-4 py-2 text-left">State</th>
+                  <th class="px-4 py-2 text-left">Model Name</th>
+                  <th class="px-4 py-2 text-left">Product Name</th>
+                  <th class="px-4 py-2 text-left">Product ID</th>
+                  <th class="px-4 py-2 text-left">Device ID Type</th>
+                  <th class="px-4 py-2 text-left">Message</th>
+                </tr>
+              </thead>
+              <tbody id="enrich-batch-tbody" class="divide-y divide-dark-700 bg-dark-900"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
       </div>
     </main>
   </div>
@@ -705,18 +812,302 @@ function exportResults(){
   a.click();
 }
 
+/* ═══════════ Enrich CSV — Adding Product Name and so forth ═══════════ */
+let enrichHeaders = [];
+let enrichOrigRows = [];      // parsed original CSV row arrays
+let enrichDidIdx = -1;
+let enrichResults = [];       // per-row enrichment result objects
+let enrichCurrent = 0;
+let enrichPaused = false;
+let enrichRunning = false;
+const ENRICH_CONCURRENCY = 4;
+
+/* — CSV parsing (supports quoted fields) — */
+function parseCsvLine(line){
+  const out = [];
+  let field = '';
+  let inQuote = false;
+  for(let i=0; i<line.length; i++){
+    const c = line[i];
+    if(c === '"'){
+      if(inQuote && line[i+1] === '"'){ field += '"'; i++; }
+      else inQuote = !inQuote;
+    } else if(c === ',' && !inQuote){
+      out.push(field);
+      field = '';
+    } else {
+      field += c;
+    }
+  }
+  out.push(field);
+  return out;
+}
+
+function parseEnrichCSV(text){
+  const norm = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const lines = norm.split('\n').filter(l => l.length);
+  if(!lines.length) return { headers:[], rows:[], didIdx:-1 };
+  const headers = parseCsvLine(lines[0]).map(h => h.trim());
+  const didIdx = headers.findIndex(h => h === 'Device Id' || h === 'device_id' || h.toLowerCase() === 'device id');
+  const rows = lines.slice(1).map(l => parseCsvLine(l));
+  return { headers, rows, didIdx };
+}
+
+function csvEscape(v){
+  const s = (v == null ? '' : String(v));
+  if(/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function updateEnrichProgress(){
+  const total = enrichOrigRows.length;
+  const done = enrichCurrent;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('enrich-progress-bar').style.width = pct + '%';
+  document.getElementById('enrich-progress-pct').textContent = pct;
+  document.getElementById('enrich-progress-done').textContent = done;
+  document.getElementById('enrich-progress-total').textContent = total;
+
+  const ok   = enrichResults.filter(r => r.status === 'success').length;
+  const fail = enrichResults.filter(r => r.status === 'failed').length;
+  const skip = enrichResults.filter(r => r.status === 'skipped').length;
+  document.getElementById('es-total').textContent = enrichResults.length;
+  document.getElementById('es-ok').textContent = ok;
+  document.getElementById('es-fail').textContent = fail;
+  document.getElementById('es-skip').textContent = skip;
+  document.getElementById('enrich-batch-summary').classList.remove('hidden');
+
+  if(fail > 0){
+    document.getElementById('enrich-retry-count').textContent = fail;
+    document.getElementById('enrich-btn-retry').classList.remove('hidden');
+  } else {
+    document.getElementById('enrich-btn-retry').classList.add('hidden');
+  }
+}
+
+function addEnrichRecentOp(did, status, message){
+  const el = document.getElementById('enrich-recent-ops');
+  const color = status === 'success' ? 'text-green-400' : status === 'failed' ? 'text-red-400' : 'text-dark-500';
+  const line = document.createElement('div');
+  line.innerHTML = `<span class="text-dark-400">${did || '—'}</span> - <span class="${color}">${status}</span> - ${message}`;
+  el.prepend(line);
+  while(el.children.length > 50) el.removeChild(el.lastChild);
+}
+
+function renderEnrichRow(r){
+  const cls = r.status === 'success' ? 'text-green-400' : r.status === 'failed' ? 'text-red-400' : 'text-dark-500';
+  return `
+    <td class="px-4 py-2 text-dark-400">${r.row}</td>
+    <td class="px-4 py-2 font-mono text-dark-200 text-xs">${r.device_id || '—'}</td>
+    <td class="px-4 py-2 font-medium ${cls}">${r.status}</td>
+    <td class="px-4 py-2 text-dark-300">${r.model_name || '—'}</td>
+    <td class="px-4 py-2 text-dark-300">${r.product_name || '—'}</td>
+    <td class="px-4 py-2 font-mono text-dark-300 text-xs">${r.product_id || '—'}</td>
+    <td class="px-4 py-2 text-dark-300">${r.device_id_type || '—'}</td>
+    <td class="px-4 py-2 text-dark-400 text-xs">${r.message || ''}</td>`;
+}
+
+function addEnrichRowTable(r){
+  const tbody = document.getElementById('enrich-batch-tbody');
+  const tr = document.createElement('tr');
+  tr.id = 'enrich-row-' + r.row;
+  tr.innerHTML = renderEnrichRow(r);
+  tbody.appendChild(tr);
+  document.getElementById('enrich-batch-results').classList.remove('hidden');
+}
+
+function updateEnrichRowTable(r){
+  const existing = document.getElementById('enrich-row-' + r.row);
+  if(existing) existing.innerHTML = renderEnrichRow(r);
+}
+
+async function queryDidEnrichment(rowNum, did){
+  const base = { row: rowNum, device_id: did, status: '', message: '',
+                 model_name: '', product_name: '', product_id: '', device_id_type: '' };
+  if(!did){
+    return { ...base, status: 'skipped', message: 'Missing Device Id' };
+  }
+  try {
+    const d = await api(`{% url "tbft_api_query_did" %}?device_id=${encodeURIComponent(did)}`);
+    if(!d) return { ...base, status: 'failed', message: 'Auth expired' };
+    if(d.error || d.code === 'not_found'){
+      return { ...base, status: 'failed', message: d.message || d.error || 'Device not found' };
+    }
+    return { ...base,
+      status: 'success',
+      message: 'Enriched',
+      model_name: d.device_model_name || '',
+      product_name: d.device_variant_name || '',
+      product_id: d.device_variant_id || '',
+      device_id_type: d.device_id_type || '',
+    };
+  } catch(e){
+    return { ...base, status: 'failed', message: e.message || 'Network error' };
+  }
+}
+
+/* Worker-pool with pause / cancel support, processes an ordered list of row indexes.
+   isRetry=true means results are replaced in-place and the overall progress counter
+   is not advanced (those rows were already counted on first pass). */
+async function runEnrichPool(indexes, isRetry){
+  let pointer = 0;
+  const totalToDo = indexes.length;
+
+  const worker = async () => {
+    while(true){
+      while(enrichPaused){
+        await new Promise(r => setTimeout(r, 200));
+        if(!enrichRunning) return;
+      }
+      if(!enrichRunning) return;
+
+      const myPos = pointer++;
+      if(myPos >= totalToDo) return;
+      const i = indexes[myPos];
+
+      const rowNum = i + 1;
+      const did = (enrichOrigRows[i][enrichDidIdx] || '').trim();
+      const result = await queryDidEnrichment(rowNum, did);
+
+      const existingIdx = enrichResults.findIndex(r => r.row === rowNum);
+      if(existingIdx >= 0){
+        enrichResults[existingIdx] = result;
+        updateEnrichRowTable(result);
+      } else {
+        enrichResults.push(result);
+        addEnrichRowTable(result);
+      }
+
+      if(!isRetry){
+        enrichCurrent = Math.min(enrichCurrent + 1, enrichOrigRows.length);
+      }
+      addEnrichRecentOp(did, result.status, result.message);
+      updateEnrichProgress();
+    }
+  };
+
+  const workers = [];
+  for(let w = 0; w < ENRICH_CONCURRENCY; w++) workers.push(worker());
+  await Promise.all(workers);
+}
+
+async function startEnrichBatch(){
+  const fileInput = document.getElementById('enrich-csv-file');
+  if(!fileInput.files.length){ alert('Choose a CSV file'); return; }
+
+  const text = await fileInput.files[0].text();
+  const parsed = parseEnrichCSV(text);
+  if(!parsed.rows.length){ alert('CSV appears to be empty'); return; }
+  if(parsed.didIdx === -1){
+    alert('CSV must contain a "Device Id" column');
+    return;
+  }
+
+  enrichHeaders = parsed.headers;
+  enrichOrigRows = parsed.rows;
+  enrichDidIdx = parsed.didIdx;
+  enrichResults = [];
+  enrichCurrent = 0;
+  enrichPaused = false;
+  enrichRunning = true;
+
+  document.getElementById('enrich-progress-section').classList.remove('hidden');
+  document.getElementById('enrich-batch-summary').classList.add('hidden');
+  document.getElementById('enrich-batch-results').classList.add('hidden');
+  document.getElementById('enrich-batch-tbody').innerHTML = '';
+  document.getElementById('enrich-recent-ops').innerHTML = '';
+  document.getElementById('enrich-btn-retry').classList.add('hidden');
+  document.getElementById('enrich-btn-pause').textContent = 'Pause';
+  document.getElementById('enrich-btn-pause').disabled = false;
+  document.getElementById('enrich-btn-pause').classList.remove('opacity-50');
+  document.getElementById('enrich-btn-start').disabled = true;
+  document.getElementById('enrich-btn-start').classList.add('opacity-50');
+  updateEnrichProgress();
+
+  const indexes = enrichOrigRows.map((_, i) => i);
+  await runEnrichPool(indexes, /* isRetry */ false);
+
+  enrichRunning = false;
+  document.getElementById('enrich-btn-pause').textContent = 'Done';
+  document.getElementById('enrich-btn-pause').disabled = true;
+  document.getElementById('enrich-btn-pause').classList.add('opacity-50');
+  document.getElementById('enrich-btn-start').disabled = false;
+  document.getElementById('enrich-btn-start').classList.remove('opacity-50');
+}
+
+function toggleEnrichPause(){
+  if(!enrichRunning) return;
+  enrichPaused = !enrichPaused;
+  document.getElementById('enrich-btn-pause').textContent = enrichPaused ? 'Resume' : 'Pause';
+}
+
+async function retryEnrichFailed(){
+  if(enrichRunning && !enrichPaused) return;
+  const failedRows = enrichResults.filter(r => r.status === 'failed').map(r => r.row - 1);
+  if(!failedRows.length) return;
+
+  enrichRunning = true;
+  enrichPaused = false;
+  document.getElementById('enrich-btn-pause').textContent = 'Pause';
+  document.getElementById('enrich-btn-pause').disabled = false;
+  document.getElementById('enrich-btn-pause').classList.remove('opacity-50');
+  document.getElementById('enrich-btn-start').disabled = true;
+  document.getElementById('enrich-btn-start').classList.add('opacity-50');
+  document.getElementById('enrich-btn-retry').classList.add('hidden');
+
+  await runEnrichPool(failedRows, /* isRetry */ true);
+
+  enrichRunning = false;
+  document.getElementById('enrich-btn-pause').textContent = 'Done';
+  document.getElementById('enrich-btn-pause').disabled = true;
+  document.getElementById('enrich-btn-pause').classList.add('opacity-50');
+  document.getElementById('enrich-btn-start').disabled = false;
+  document.getElementById('enrich-btn-start').classList.remove('opacity-50');
+  updateEnrichProgress();
+}
+
+function exportEnrichedCSV(){
+  if(!enrichResults.length || !enrichHeaders.length) return;
+  const resultByRow = new Map(enrichResults.map(r => [r.row, r]));
+  const extraHeaders = ['Model Name', 'Product Name', 'Product ID', 'Device ID Type'];
+  const outHeaders = enrichHeaders.concat(extraHeaders);
+  let csv = outHeaders.map(csvEscape).join(',') + '\n';
+  enrichOrigRows.forEach((row, idx) => {
+    const rowNum = idx + 1;
+    const r = resultByRow.get(rowNum);
+    const enriched = [
+      r ? r.model_name : '',
+      r ? r.product_name : '',
+      r ? r.product_id : '',
+      r ? r.device_id_type : '',
+    ];
+    const padded = row.slice();
+    while(padded.length < enrichHeaders.length) padded.push('');
+    csv += padded.slice(0, enrichHeaders.length).concat(enriched).map(csvEscape).join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const origName = document.getElementById('enrich-csv-file').files[0]?.name || 'enriched.csv';
+  const base = origName.replace(/\.csv$/i, '');
+  a.download = `${base}_enriched.csv`;
+  a.click();
+}
+
 /* ═══════════ Navigation guard ═══════════ */
 let pendingNavUrl = null;
 
+function anyBatchRunning(){ return batchRunning || enrichRunning; }
+
 window.addEventListener('beforeunload', function(e){
-  if(batchRunning){
+  if(anyBatchRunning()){
     e.preventDefault();
     e.returnValue = '';
   }
 });
 
 document.addEventListener('click', function(e){
-  if(!batchRunning) return;
+  if(!anyBatchRunning()) return;
   const link = e.target.closest('a[href]');
   if(!link) return;
   const href = link.getAttribute('href');
@@ -736,6 +1127,8 @@ document.getElementById('nav-guard-stay').addEventListener('click', function(){
 document.getElementById('nav-guard-leave').addEventListener('click', function(){
   batchRunning = false;
   batchPaused = false;
+  enrichRunning = false;
+  enrichPaused = false;
   document.getElementById('nav-guard-modal').classList.add('hidden');
   if(pendingNavUrl) window.location.href = pendingNavUrl;
 });
