@@ -214,7 +214,8 @@
         </h2>
         <p class="text-xs text-dark-400 mb-4">
           Upload an activated devices CSV (with a <code class="bg-dark-700 px-1 rounded text-dark-200">Device Id</code> column).
-          Each Device Id will be queried and 4 new columns appended:
+          Each Device Id will be queried and 5 new columns appended in this order:
+          <code class="bg-dark-700 px-1 rounded text-dark-200">Model ID</code>,
           <code class="bg-dark-700 px-1 rounded text-dark-200">Model Name</code>,
           <code class="bg-dark-700 px-1 rounded text-dark-200">Product Name</code>,
           <code class="bg-dark-700 px-1 rounded text-dark-200">Product ID</code>,
@@ -298,6 +299,7 @@
                   <th class="px-4 py-2 text-left">Row</th>
                   <th class="px-4 py-2 text-left">Device Id</th>
                   <th class="px-4 py-2 text-left">State</th>
+                  <th class="px-4 py-2 text-left">Model ID</th>
                   <th class="px-4 py-2 text-left">Model Name</th>
                   <th class="px-4 py-2 text-left">Product Name</th>
                   <th class="px-4 py-2 text-left">Product ID</th>
@@ -900,6 +902,7 @@ function renderEnrichRow(r){
     <td class="px-4 py-2 text-dark-400">${r.row}</td>
     <td class="px-4 py-2 font-mono text-dark-200 text-xs">${r.device_id || '—'}</td>
     <td class="px-4 py-2 font-medium ${cls}">${r.status}</td>
+    <td class="px-4 py-2 font-mono text-dark-300 text-xs">${r.model_id || '—'}</td>
     <td class="px-4 py-2 text-dark-300">${r.model_name || '—'}</td>
     <td class="px-4 py-2 text-dark-300">${r.product_name || '—'}</td>
     <td class="px-4 py-2 font-mono text-dark-300 text-xs">${r.product_id || '—'}</td>
@@ -923,7 +926,7 @@ function updateEnrichRowTable(r){
 
 async function queryDidEnrichment(rowNum, did){
   const base = { row: rowNum, device_id: did, status: '', message: '',
-                 model_name: '', product_name: '', product_id: '', device_id_type: '' };
+                 model_id: '', model_name: '', product_name: '', product_id: '', device_id_type: '' };
   if(!did){
     return { ...base, status: 'skipped', message: 'Missing Device Id' };
   }
@@ -936,6 +939,7 @@ async function queryDidEnrichment(rowNum, did){
     return { ...base,
       status: 'success',
       message: 'Enriched',
+      model_id: d.device_model_id || '',
       model_name: d.device_model_name || '',
       product_name: d.device_variant_name || '',
       product_id: d.device_variant_id || '',
@@ -1069,13 +1073,14 @@ async function retryEnrichFailed(){
 function exportEnrichedCSV(){
   if(!enrichResults.length || !enrichHeaders.length) return;
   const resultByRow = new Map(enrichResults.map(r => [r.row, r]));
-  const extraHeaders = ['Model Name', 'Product Name', 'Product ID', 'Device ID Type'];
+  const extraHeaders = ['Model ID', 'Model Name', 'Product Name', 'Product ID', 'Device ID Type'];
   const outHeaders = enrichHeaders.concat(extraHeaders);
   let csv = outHeaders.map(csvEscape).join(',') + '\n';
   enrichOrigRows.forEach((row, idx) => {
     const rowNum = idx + 1;
     const r = resultByRow.get(rowNum);
     const enriched = [
+      r ? r.model_id : '',
       r ? r.model_name : '',
       r ? r.product_name : '',
       r ? r.product_id : '',
