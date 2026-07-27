@@ -213,13 +213,11 @@
           Adding Product Name and so forth
         </h2>
         <p class="text-xs text-dark-400 mb-4">
-          Upload an activated devices CSV (with a <code class="bg-dark-700 px-1 rounded text-dark-200">Device Id</code> column).
-          Each Device Id will be queried and 5 new columns appended in this order:
-          <code class="bg-dark-700 px-1 rounded text-dark-200">Model ID</code>,
-          <code class="bg-dark-700 px-1 rounded text-dark-200">Model Name</code>,
-          <code class="bg-dark-700 px-1 rounded text-dark-200">Product Name</code>,
-          <code class="bg-dark-700 px-1 rounded text-dark-200">Product ID</code>,
-          <code class="bg-dark-700 px-1 rounded text-dark-200">Device ID Type</code>.
+          Upload an activated devices CSV (must contain a <code class="bg-dark-700 px-1 rounded text-dark-200">Device Id</code> column).
+          Each Device Id is queried; the exported CSV contains 10 columns in this exact order:
+          <span class="text-dark-200">Device ID, Model ID, Model Name, Product Name, Product ID, Device ID Type,
+          First Name &amp; Last Name, Phone Number, Marketplace, Address</span>.
+          The last four come from the source CSV (matched case-insensitively) and are left blank if the source has no such column.
         </p>
 
         <!-- file + start -->
@@ -818,11 +816,22 @@ function exportResults(){
 let enrichHeaders = [];
 let enrichOrigRows = [];      // parsed original CSV row arrays
 let enrichDidIdx = -1;
+let enrichSrcIdx = {};        // source-CSV column indexes for export (name, phone, marketplace, address)
 let enrichResults = [];       // per-row enrichment result objects
 let enrichCurrent = 0;
 let enrichPaused = false;
 let enrichRunning = false;
 const ENRICH_CONCURRENCY = 4;
+
+/* Case-insensitive header lookup: try each candidate name, return index or -1. */
+function findHeaderIdx(headers, candidates){
+  const lower = headers.map(h => (h || '').trim().toLowerCase());
+  for(const c of candidates){
+    const i = lower.indexOf(c.toLowerCase());
+    if(i !== -1) return i;
+  }
+  return -1;
+}
 
 /* — CSV parsing (supports quoted fields) — */
 function parseCsvLine(line){
@@ -848,11 +857,17 @@ function parseCsvLine(line){
 function parseEnrichCSV(text){
   const norm = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
   const lines = norm.split('\n').filter(l => l.length);
-  if(!lines.length) return { headers:[], rows:[], didIdx:-1 };
+  if(!lines.length) return { headers:[], rows:[], didIdx:-1, srcIdx:{} };
   const headers = parseCsvLine(lines[0]).map(h => h.trim());
-  const didIdx = headers.findIndex(h => h === 'Device Id' || h === 'device_id' || h.toLowerCase() === 'device id');
+  const didIdx = findHeaderIdx(headers, ['Device Id', 'Device ID', 'device_id']);
+  const srcIdx = {
+    name:        findHeaderIdx(headers, ['First Name & Last Name', 'First Name and Last Name', 'Full Name', 'Name']),
+    phone:       findHeaderIdx(headers, ['Phone Number', 'Phone', 'phone_number']),
+    marketplace: findHeaderIdx(headers, ['Marketplace', 'Market', 'marketplace']),
+    address:     findHeaderIdx(headers, ['Address', 'address']),
+  };
   const rows = lines.slice(1).map(l => parseCsvLine(l));
-  return { headers, rows, didIdx };
+  return { headers, rows, didIdx, srcIdx };
 }
 
 function csvEscape(v){
@@ -1010,6 +1025,7 @@ async function startEnrichBatch(){
   enrichHeaders = parsed.headers;
   enrichOrigRows = parsed.rows;
   enrichDidIdx = parsed.didIdx;
+  enrichSrcIdx = parsed.srcIdx;
   enrichResults = [];
   enrichCurrent = 0;
   enrichPaused = false;
@@ -1073,23 +1089,33 @@ async function retryEnrichFailed(){
 function exportEnrichedCSV(){
   if(!enrichResults.length || !enrichHeaders.length) return;
   const resultByRow = new Map(enrichResults.map(r => [r.row, r]));
-  const extraHeaders = ['Model ID', 'Model Name', 'Product Name', 'Product ID', 'Device ID Type'];
-  const outHeaders = enrichHeaders.concat(extraHeaders);
+
+  // Exact export column order requested by the user.
+  const outHeaders = [
+    'Device ID', 'Model ID', 'Model Name', 'Product Name', 'Product ID', 'Device ID Type',
+    'First Name & Last Name', 'Phone Number', 'Marketplace', 'Address',
+  ];
+  const cell = (row, idx) => (idx >= 0 && idx < row.length ? (row[idx] || '') : '');
+
   let csv = outHeaders.map(csvEscape).join(',') + '\n';
   enrichOrigRows.forEach((row, idx) => {
     const rowNum = idx + 1;
     const r = resultByRow.get(rowNum);
-    const enriched = [
-      r ? r.model_id : '',
-      r ? r.model_name : '',
-      r ? r.product_name : '',
-      r ? r.product_id : '',
-      r ? r.device_id_type : '',
+    const outRow = [
+      cell(row, enrichDidIdx),                    // Device ID (from source CSV)
+      r ? r.model_id       : '',                  // Model ID (from API)
+      r ? r.model_name     : '',                  // Model Name (from API)
+      r ? r.product_name   : '',                  // Product Name (from API, device_variant_name)
+      r ? r.product_id     : '',                  // Product ID  (from API, device_variant_id)
+      r ? r.device_id_type : '',                  // Device ID Type (from API)
+      cell(row, enrichSrcIdx.name),               // First Name & Last Name (from source CSV)
+      cell(row, enrichSrcIdx.phone),              // Phone Number           (from source CSV)
+      cell(row, enrichSrcIdx.marketplace),        // Marketplace            (from source CSV)
+      cell(row, enrichSrcIdx.address),            // Address                (from source CSV)
     ];
-    const padded = row.slice();
-    while(padded.length < enrichHeaders.length) padded.push('');
-    csv += padded.slice(0, enrichHeaders.length).concat(enriched).map(csvEscape).join(',') + '\n';
+    csv += outRow.map(csvEscape).join(',') + '\n';
   });
+
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
